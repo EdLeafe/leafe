@@ -1,0 +1,280 @@
+{% extends "master.html" %}
+
+{% block title %}Search the Archives{% endblock %}
+
+{% block extra_JS %}
+  var now = new Date();
+  var st_now = now.toISOString().split("T")[0];
+  var currTime = now.getTime();
+  var dayMillis = (1000 * 24 * 60 * 60);
+  var yesterday = new Date(currTime - dayMillis);
+  var st_yesterday = yesterday.toISOString().split("T")[0];
+  var weekago = new Date(currTime - (7 * dayMillis));
+  var st_week = weekago.toISOString().split("T")[0];
+  var monthago = new Date();
+  monthago.setMonth(now.getMonth() - 1);
+  var st_month = monthago.toISOString().split("T")[0];
+  var yearago = new Date();
+  yearago.setYear(now.getFullYear() - 1);
+  var st_year = yearago.toISOString().split("T")[0];
+  var allstart = new Date(1999, 0, 1);
+  var st_all = allstart.toISOString().split("T")[0];
+  var thisYear = now.getYear() + 1900;
+
+  function onSelectDateRange(obj) {
+      var start = document.getElementById("start_date");
+      var end = document.getElementById("end_date");
+      // Now set the values
+      switch(obj.id) {
+        case "range_today":
+          start.value = st_now;
+          end.value = st_now;
+          break;
+        case "range_yesterday":
+          start.value = st_yesterday;
+          end.value = st_yesterday;
+          break;
+        case "range_week":
+          start.value = st_week;
+          end.value = st_now;
+          break;
+        case "range_month":
+          start.value = st_month;
+          end.value = st_now;
+          break;
+        case "range_year":
+          start.value = st_year;
+          end.value = st_now;
+          break;
+        case "range_custom":
+          var instance = M.Datepicker.getInstance(start);
+          instance.open()
+          break;
+      }
+  
+  }
+  
+  document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('select');
+    var instances = M.FormSelect.init(elems, options={});
+    elems = document.querySelectorAll('.collapsible');
+    instances = M.Collapsible.init(elems, inDuration=500);
+    elems = document.querySelectorAll('.datepicker');
+    instances = M.Datepicker.init(elems, options={'format':'yyyy-mm-dd', 'yearRange': 25});
+    for (var i = 0; i < elems.length; i++) {
+      var elem = elems[i];
+      if (elem.id == "start_date") {
+        elem.value = st_month;
+      } else if (elem.id == "end_date") {
+        elem.value = st_now;
+      }
+    }
+  });
+{% endblock %}
+
+    {% block content %}
+
+    {% if not g.listname %}
+    <div class="container">
+      <div class="row">
+        <div class="col s12">
+          <div class="col s12"><h4>Please select the archive to search</h4></div>
+          <div class="col s6 offset-s3"><a href="/archives/profox" id="lnkProFox" name="lnkProFox">ProFox</a></div>
+          <div class="col s6 offset-s3"><a href="/archives/prolinux" id="lnkProLinux" name="lnkProLinux">ProLinux</a></div>
+          <div class="col s6 offset-s3"><a href="/archives/propython" id="lnkProPython" name="lnkProPython">ProPython</a></div>
+          <div class="col s6 offset-s3"><a href="/archives/codebook" id="lnkCodebook" name="lnkCodebook">Codebook</a></div>
+          <div class="col s6 offset-s3"><a href="/archives/dabo-users" id="lnkDaboUsers" name="lnkDaboUsers">Dabo-users</a></div>
+          <div class="col s6 offset-s3"><a href="/archives/dabo-dev" id="lnkDaboDev" name="lnkDaboDev">Dabo-dev</a></div>
+        </div>
+      </div>
+    </div>
+
+    {% else %}
+    <div class="container">
+      <div class="row">
+        <form method="POST" action="/archives/results/{{ g.listname }}" name="searchForm">
+        <input name="listname" type="hidden" value={{ g.listname }}>
+        <div class="row">
+          <div class="col s10">
+            <h2>Search the {{ g.proper_listname }} List Archives</h2>
+            <ul class="collapsible">
+              <li>
+                <div class="collapsible-header">
+                  <i class="material-icons">info</i>How to Format Search Terms
+                </div>
+                <div class="collapsible-body">
+                  <p>Enter your search terms below. These will be used to find messages whose bodies contain those terms.</p>
+                  <p>Results will include all individual words in the search terms.</p>
+                  <p>To indicate that a term must <b><i>NOT</i></b> be in the results, prefix it with a minus sign (<b>-</b>)</p>
+                  <p>To search for a particular phrase, surround that phrase with double quotes</p>
+                  <p>To exclude a particular phrase, add a minus sign (<b>-</b>) as the first character inside the quotes.</p>
+                  <p>Examples:</p>
+                  <p><blockquote>addition math -remodel</blockquote></p>
+                  <p><i class="tiny material-icons">lens</i> This will return entries containing the words 'addition' and 'math', but not if it also includes the word 'remodel'.</p>
+                  <p><blockquote>database "corrupted index"</blockquote></p>
+                  <p><i class="tiny material-icons">lens</i> This will return all entries with the word 'database' and the exact phrase 'corrupted index'.</p>
+                  <p><blockquote>database "-corrupted index"</blockquote></p>
+                  <p><i class="tiny material-icons">lens</i> This will return all entries with the word 'database', but <b><i>not</i></b> any with the exact phrase 'corrupted index'.</p>
+                  <p><hr /></p>
+                  <p>NOTE: the subject search field always searches on the <b>full phrase entered</b>.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col s12">
+            <div class="input-field">
+              <label for="body_terms">Search Terms</label>
+              <input type="text" id="body_terms" name="body_terms">
+            </div>
+
+            <div class="input-field">
+              <label for="subject">Subject Phrase</label>
+              <input type="text" id="subject_phrase" name="subject_phrase">
+            </div>
+
+            <div class="input-field">
+              <label for="author">Author</label>
+              <input type="text" id="author" name="author">
+            </div>
+            {% if g.listname == "profox" %}
+            <div>
+              <label>
+                <input type="checkbox" id="chk_OT" name="chk_OT" />
+                <span>Include Off-Topic messages</span>
+              </label>
+            </div>
+            <div>
+              <label>
+                <input type="checkbox" id="chk_NF" name="chk_NF" />
+                <span>Include NonFox messages</span>
+              </label>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+  
+        <div class="row">
+          <div class="col s4">
+            <div class="row">
+              <div class="col s8">
+                <h4>Date Range</h4>
+              </div>
+            </div>
+            <div class="row" style="margin-bottom:0;">
+              <div class="col s12">
+                  <label>
+                    <input class="date_range" id="range_today" name="date_radio" type="radio" OnClick="onSelectDateRange(this);"/>
+                    <span>Today only</span>
+                  </label>
+              </div>
+            </div>
+            <div class="row" style="margin-bottom:0;">
+              <div class="col s12">
+                  <label>
+                    <input class="date_range" id="range_yesterday" name="date_radio" type="radio" OnClick="onSelectDateRange(this);"/>
+                    <span>Yesterday only</span>
+                  </label>
+              </div>
+            </div>
+            <div class="row" style="margin-bottom:0;">
+              <div class="col s12">
+                  <label>
+                    <input class="date_range" id="range_week" name="date_radio" type="radio" OnClick="onSelectDateRange(this);"/>
+                    <span>In the last week</span>
+                  </label>
+              </div>
+            </div>
+            <div class="row" style="margin-bottom:0;">
+              <div class="col s12">
+                  <label>
+                    <input class="date_range" id="range_month" name="date_radio" type="radio" checked  OnClick="onSelectDateRange(this);"/>
+                    <span>In the last month</span>
+                  </label>
+              </div>
+            </div>
+            <div class="row" style="margin-bottom:0;">
+              <div class="col s12">
+                  <label>
+                    <input class="date_range" id="range_year" name="date_radio" type="radio" OnClick="onSelectDateRange(this);"/>
+                    <span>In the last year</span>
+                  </label>
+              </div>
+            </div>
+            <div class="row" style="margin-bottom:0;">
+              <div class="col s12">
+                  <label>
+                    <input class="date_range" id="range_custom" name="date_radio" type="radio" OnClick="onSelectDateRange(this);"/>
+                    <span>Custom Range</span>
+                  </label>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col s6">
+                <label for="start_date">
+                <input type="text" class="datepicker" id="start_date" name="start_date" placeholder="Start Date" >
+                Start Date</label>
+              </div>
+        
+              <div class="col s6">
+                <label for="end_date">
+                <input type="text" class="datepicker" id="end_date" name="end_date" placeholder="End Date">
+                End Date</label>
+              </div>
+            </div>
+          </div>
+          <div class="col s4">
+            <div class="row" style="margin-bottom: 0;">
+              <div class="col s12">
+                <h4>Order Results By:</h4>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col s12">
+                <div class="input-field">
+                  <select id="sort_order" name="sort_order">
+                    <option value="recent_first" selected>Most Recent First</option>
+                    <option value="oldest_first">Oldest First</option>
+                    <option value="author_name">Author Name</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col s4">
+            <div class="row" style="margin-bottom: 0;">
+              <div class="col s12">
+                <h4>Results per Page:</h4>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col s12">
+                <div class="input-field">
+                  <select id="batch_size" name="batch_size">
+                    <option value="50" selected>50</option>
+                    <option value="100">100</option>
+                    <option value="150">150</option>
+                    <option value="200">200</option>
+                    <option value="250">250</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col s3">
+          <button class="btn waves-effect waves-light" type="submit" name="action">Submit
+            <i class="material-icons right">send</i>
+          </button>
+          </div>
+        </div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+    {% endblock %}

@@ -1,0 +1,21 @@
+{% extends "master.html" %}
+
+{% block title %}Oops!{% endblock %}
+    {% block content %}
+    <div class="row">
+      <div class="col s6 offset-s1">
+        <div class="card red lighten-1">
+          <div class="card-content yellow-text">
+            <span class="card-title">OMG, something went wrong!</span>
+            {% if g.error %}
+              <p>{{ g.error }}</p>
+            {% else %}
+            <h6>The page <b>{{ g.url }}</b> does not exist.</h6>
+            <p>Please check it and try again.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% endblock %}

@@ -1,0 +1,79 @@
+{% extends "master.html" %}
+
+{% block title %}Search Results{% endblock %}
+
+    {% block content %}
+
+
+    <div class="row">
+      <div class="col s9 offset-s1">
+        {{ g.kwargs }}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col s9 offset-s1">
+        num_results = {{ g.num_results }}
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col s9 offset-s1">
+        full_results = {{ g.full_results }}
+      </div>
+    </div>
+
+
+
+  <div>
+{% if not g.results %}
+    <div>
+        <h3>No results were found. Please <a href="/archives/{{ g.listname }}">try again</a>.</h3>
+    </div>
+{% else %}
+    <div class="row">
+      <div class="col s9 offset-s1">
+        <h5>Your query returned <b>{{ g.num_results }}</b> match{{ "es" if g.num_results > 1 else "" }} in <b><i>{{ g.elapsed }} seconds</i></b></h5>
+      </div>
+    </div>
+    {% if g.limit_msg %}
+    <div class="row">
+      <div class="col s9 offset-s1">
+        <i class="red-text">{{ g.limit_msg }}</i>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+      <div class="col s9 offset-s1">
+        {{ g.pager_text | safe }}
+      </div>
+    </div>
+
+	<div class="row">
+      <div class="col l4 offset-l1">
+        <a href="/archives/{{ g.listname }}">New Search</a>
+    </div>
+
+    <div class="row">
+      <div class="col s9 offset-s1">
+        <table class="striped">
+          <tbody>
+
+            {% for num, msg in enumerate(g.results) %}
+            <tr>
+              <td>
+                {{ g.offset + num + 1 }}. <a href="/archives/msg/{{ msg.msg_num }}">{{ msg.subject }}</a><br />
+                Author: <b>{{ fmt_author(msg.from) }}</b> Posted at: {{ fmt_date(msg.posted) }}
+              </td>
+
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+{% endif %}
+{% endblock %}

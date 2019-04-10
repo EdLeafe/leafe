@@ -3,7 +3,7 @@ import datetime
 from flask import Flask, g, render_template, request, url_for
 
 import archives
-#import welcome
+import downloads
 
 app = Flask(__name__)
 app.secret_key = b"C\xba\x87\xbf\xca'i\xbf\xab\xc4\x9b\x97\xdc\xef\xb0\x9a\xed"
@@ -21,8 +21,13 @@ def addalias():
 
 @app.route("/email_lists")
 def show_email_lists():
-    g.email_list_card_color = "grey lighten-3 black-text "
+    g.email_list_card_color = "light-blue lighten-5 black-text "
     return render_template("email_lists.html")
+
+@app.route("/profox_faq")
+def show_profox_faq():
+    g.email_list_card_color = "light-blue lighten-5 black-text "
+    return render_template("profox_faq.html")
 
 @app.route("/archives/full_thread/<msg_num>", methods=["GET"])
 def show_full_thread(msg_num):
@@ -48,6 +53,31 @@ def achives_get_listname(listname):
 def achives_get():
     return archives.archives_form()
 
+@app.route("/downloads")
+def dls():
+    return downloads.main_page()
+
+@app.route("/search_dls", methods=["POST"])
+def search_dls():
+    return downloads.search_dls()
+
+@app.route("/download_list")
+def list_downloads():
+    return downloads.all_dls()
+
+@app.route("/download_file/<url>/<url2>")
+@app.route("/download_file/<url>")
+def download_file(url, url2=None):
+    return downloads.download_file(url, url2=url2)
+
+@app.route("/uploads")
+def uploads():
+    return downloads.upload()
+
+@app.route("/upload_file", methods=["POST"])
+def upload_file():
+    return downloads.upload_file()
+
 @app.route("/ip.html")
 def get_ip():
     g.remote_ip = request.environ["REMOTE_ADDR"]
@@ -55,9 +85,8 @@ def get_ip():
 
 @app.route("/ip")
 def get_plain_ip():
-    return f'{request.environ["REMOTE_ADDR"]}'
-    return render_template("ip.html")
-
+    addr = request.environ['REMOTE_ADDR']
+    return f"{addr}"
 
 @app.route("/test")
 def test():
@@ -70,12 +99,6 @@ def not_found(e):
     g.url = request.url
     g.error = e
     return render_template("not_found.html")
-
-
-#@app.route("/archives", strict_slashes=False)
-#@app.route("/archives/<listname>")
-#def get_archives(listname=None):
-#    return archives.GET_archives(listname=listname)
 
 
 if __name__ == "__main__":

@@ -39,9 +39,15 @@
       font-weight: 800;
     }
     .navbutton {
-        background-color: "amber darken-3"
+        background-color: "amber darken-3";
+    }
+    .btn, .btn:hover {
+        background-color: #1E90FF;
     }
   </style>
+
+  {% block extra_CSS %}
+  {% endblock %}
 
   <!-- Javascript
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
@@ -95,7 +101,6 @@
   });
 
   {% block extra_JS %}
-  {{ extra_JS }}
   {% endblock %}
 
   </script>
@@ -108,7 +113,7 @@
   {% block navbar %}
   <div class="row">
     <div class="col s12">
-      <nav class="light-green">
+      <nav class="light-blue">
         <div class="nav-wrapper">
             <a href="#!" class="brand-logo">
             <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i>
@@ -122,7 +127,13 @@
               </li>
               <li><a href="/archives">List Archives</a>
               </li>
-              <li><a href="/dls">Downloads</a>
+              <li><a href="/downloads">Downloads</a>
+              </li>
+              <li><a href="https://blog.edleafe.com">Blog</a>
+              </li>
+              <li><a href="https://art.edleafe.com">Art</a>
+              </li>
+              <li><a href="https://github.com/EdLeafe?tab=repositories">GitHub</a>
               </li>
             </ul>
         </div>
@@ -134,8 +145,14 @@
         </li>
         <li><a href="/archives">List Archives</a>
         </li>
-        <li><a href="/dls">Downloads</a>
+        <li><a href="/downloads">Downloads</a>
         </li>
+        <li><a href="https://blog.edleafe.com">Blog</a>
+        </li>
+		<li><a href="https://art.edleafe.com">Art</a>
+		</li>
+		<li><a href="https://github.com/EdLeafe?tab=repositories">GitHub</a>
+		</li>
       </ul>
     </div>
   </div>

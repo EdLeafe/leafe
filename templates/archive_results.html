@@ -4,26 +4,14 @@
 
     {% block content %}
 
-
-    <div class="row">
-      <div class="col s9 offset-s1">
-        {{ g.kwargs }}
-      </div>
+    <!--
+    <div>
+        Keys:{{ g.session.keys() }}
     </div>
-
-    <div class="row">
-      <div class="col s9 offset-s1">
-        num_results = {{ g.num_results }}
-      </div>
+    <div>
+        Full:{{ g.session["kwargs"] }}
     </div>
-
-    <div class="row">
-      <div class="col s9 offset-s1">
-        full_results = {{ g.full_results }}
-      </div>
-    </div>
-
-
+    -->
 
   <div>
 {% if not g.results %}
@@ -53,6 +41,7 @@
 	<div class="row">
       <div class="col l4 offset-l1">
         <a href="/archives/{{ g.listname }}">New Search</a>
+      </div>
     </div>
 
     <div class="row">

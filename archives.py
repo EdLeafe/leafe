@@ -11,12 +11,10 @@ from flask import abort, Flask, g, render_template, request, session, url_for
 import helpers as h
 
 PHRASE_PAT = re.compile('"([^"]*)"*')
-BATCH_SIZE = 250
 # Elasticsearch doesn't alllow for accessing more than 10K records, even with
 # using offsets. There are ways around it, but really, a search that pulls more
 # than 10K is not a very good search.
 MAX_RECORDS = 10000
-MAX_PAGES = int(MAX_RECORDS / BATCH_SIZE)
 LIMIT_MSG = "Note: Result sets are limited to %s records" % MAX_RECORDS
 
 es_client = elasticsearch.Elasticsearch(host="dodb")
@@ -248,22 +246,29 @@ def archives_results_GET(listname):
     g.limit_msg = session["limit_msg"]
     g.num_results = session["num_results"]
     g.full_results = session["full_results"]
+    g.batch_size = session["batch_size"]
     g.page = int(request.args["page"])
     g.url = request.url
     g.remote_addr = request.remote_addr
     g.kwargs = session["kwargs"]
-    g.offset = (g.page - 1) * BATCH_SIZE
+    g.offset = (g.page - 1) * g.batch_size
     # Make sure we don't exceed elasticsearch's limits
-    g.kwargs["from_"] = min(g.offset, MAX_RECORDS - BATCH_SIZE)
+    g.kwargs["from_"] = min(g.offset, MAX_RECORDS - g.batch_size)
     resp = es_client.search("email", doc_type="mail", **g.kwargs)
     g.results = _extract_records(resp, translate_to_db=False)
     g.pager_text = _pager_text()
+    g.session = session
     func_dict = {"enumerate": enumerate, "fmt_author": _format_author,
             "fmt_date": _format_date}
     return render_template("archive_results.html", **func_dict)
 
 
 def archives_results_POST(listname):
+    # Clear any old session data
+#    session = {}
+    for key in ("listname", "elapsed", "total_pages", "limit_msg",
+            "num_results", "full_results", "batch_size", "kwargs"):
+        session.pop(key, None)
     g.listname = session["listname"] = listname
     body_terms = request.form.get("body_terms")
     subject = request.form.get("subject_phrase")
@@ -273,6 +278,7 @@ def archives_results_POST(listname):
     sort_order = _get_sort_order(request.form.get("sort_order"))
     include_OT = bool(request.form.get("chk_OT"))
     include_NF = bool(request.form.get("chk_NF"))
+    batch_size = int(request.form.get("batch_size"))
 
     kwargs = {"body": {"query": {
             "bool": {
@@ -300,10 +306,11 @@ def archives_results_POST(listname):
     if author:
         expr = "*%s*" % author
         bqbm.append({"wildcard": {"from": expr}})
-    if not include_OT:
-        _add_match(neg_bqbm, "subject", "[OT]")
-    if not include_NF:
-        _add_match(neg_bqbm, "subject", "[NF]")
+    if listabb == "p":
+        if not include_OT:
+            _add_match(neg_bqbm, "subject", "[OT]")
+        if not include_NF:
+            _add_match(neg_bqbm, "subject", "[NF]")
 
     bqbm.append({"range": {"posted": {"gte": start_date}}})
     bqbm.append({"range": {"posted": {"lte": end_date}}})
@@ -324,18 +331,18 @@ def archives_results_POST(listname):
     resp = es_client.search("email", doc_type="mail", **kwargs)
     g.full_results = [r["_source"]["msg_num"] for r in resp["hits"]["hits"]]
     session["full_results"] = g.full_results
-    g.num_results = resp["hits"]["total"]
+    session["num_results"] = g.num_results = resp["hits"]["total"]
     g.limit_msg = "" if g.num_results <= MAX_RECORDS else LIMIT_MSG
-    session["num_results"] = g.num_results
     session["limit_msg"] = g.limit_msg
 
     # Now run the query for real
     kwargs.pop("_source")
-    kwargs["size"] = BATCH_SIZE
-    g.offset = int(request.form.get("page", "0")) * BATCH_SIZE
+    kwargs["size"] = batch_size
+    g.offset = int(request.form.get("page", "0")) * batch_size
     # Make sure we don't exceed elasticsearch's limits
-    kwargs["from_"] = min(g.offset, MAX_RECORDS - BATCH_SIZE)
+    kwargs["from_"] = min(g.offset, MAX_RECORDS - batch_size)
 
+    session["batch_size"] = batch_size
     session["kwargs"] = g.kwargs = kwargs
     resp = es_client.search("email", doc_type="mail", **kwargs)
     session["elapsed"] = g.elapsed = "%.4f" % (time.time() - startTime)
@@ -348,8 +355,9 @@ def archives_results_POST(listname):
     g.remote_addr = request.remote_addr
 
     page = int(request.form.get("page", "1"))
-    calc_pages = int(math.ceil(float(g.num_results) / BATCH_SIZE))
-    session["total_pages"] = g.total_pages = min(calc_pages, MAX_PAGES)
+    calc_pages = int(math.ceil(float(g.num_results) / batch_size))
+    max_pages = int(MAX_RECORDS / batch_size)
+    session["total_pages"] = g.total_pages = min(calc_pages, max_pages)
     page = min(page, g.total_pages)
 
     g.page = page
@@ -357,3 +365,6 @@ def archives_results_POST(listname):
     func_dict = {"enumerate": enumerate, "fmt_author": _format_author,
             "fmt_date": _format_date}
     return render_template("archive_results.html", **func_dict)
+
+#BATCH_SIZE = 250
+#MAX_PAGES = int(MAX_RECORDS / BATCH_SIZE)

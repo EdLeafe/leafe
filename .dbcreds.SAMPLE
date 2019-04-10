@@ -1,0 +1,3 @@
+DB_USERNAME=some_user
+DB_PWD=easily_guessable_password
+DB_NAME=crazy_name

@@ -1,7 +1,31 @@
 {% extends "master.html" %}
 
+{% block extra_JS %}
+  document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.parallax');
+    var instances = M.Parallax.init(elems, options);
+  });
+{% endblock %}
+
+
 {% block title %}Welcome to leafe.com{% endblock %}
     {% block content %}
+
+    <div class="parallax-container">
+      <div class="parallax"><img src="static/images/reference-h.jpg"></div>
+    </div>
+    <div class="section white">
+      <div class="row container">
+        <h2 class="header">Welcome to leafe.com</h2>
+        <p class="grey-text text-darken-3 lighten-3">There is no single theme here, but rather a collection of things I've accumulated over the years.</p>
+      </div>
+    </div>
+    <div class="parallax-container">
+      <div class="parallax"><img src="static/images/hospital_bands.jpg"></div>
+    </div>
+
+
+
     <div class="row">
       <h3>The <span class="yellow">UTC</span> time is now {{ g.timenow }}</h3>
     </div>

@@ -1,0 +1,9 @@
+{% extends "master.html" %}
+{% block title %}Galleries{% endblock %}
+  {% block content %}
+  <div class="row">
+    {% for gal in g.gallery_names %}
+      <div><a href="/galleries/{{ gal }}">{{ gal }}</a></div>
+    {% endfor %}
+  </div>
+  {% endblock %}

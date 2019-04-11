@@ -3,6 +3,7 @@ import datetime
 from flask import Flask, g, render_template, request, url_for
 
 import archives
+import art
 import downloads
 
 app = Flask(__name__)
@@ -88,11 +89,13 @@ def get_plain_ip():
     addr = request.environ['REMOTE_ADDR']
     return f"{addr}"
 
-@app.route("/test")
-def test():
-    import test
-    return test.test_page()
+@app.route("/art")
+def get_art():
+    return art.about()
 
+@app.route("/art/galleries")
+def show_galleries():
+    return art.show_galleries()
 
 @app.errorhandler(404)
 def not_found(e):

@@ -52,52 +52,13 @@
   <!-- Javascript
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <script>
-  function sorttable(idx, e) {
-	var table, candidate, rows, switching, i, x, y, shouldSwitch;
-	table = "";
-    candidate = e.target;
-	while (candidate) {
-        if (candidate.nodeName.toLowerCase() == "table") {
-            table = candidate;
-            break;
-        }
-        candidate = candidate.parentElement;
-    }
-	switching = true;
-	/* Make a loop that will continue until
-	no switching has been done: */
-	while (switching) {
-	  // Start by saying: no switching is done:
-	  switching = false;
-	  rows = table.getElementsByTagName("TR");
-	  /* Loop through all table rows (except the
-	  first, which contains table headers): */
-	  for (i = 1; i < (rows.length - 1); i++) {
-		// Start by saying there should be no switching:
-		shouldSwitch = false;
-		/* Get the two elements you want to compare,
-		one from current row and one from the next: */
-		x = rows[i].getElementsByTagName("TD")[idx];
-		y = rows[i + 1].getElementsByTagName("TD")[idx];
-		// Check if the two rows should switch place:
-		if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-		  // I so, mark as a switch and break the loop:
-		  shouldSwitch= true;
-		  break;
-		}
-	  }
-	  if (shouldSwitch) {
-		/* If a switch has been marked, make the switch
-		and mark that a switch has been done: */
-		rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-		switching = true;
-	  }
-	}
-  }
-
   document.addEventListener('DOMContentLoaded', function() {
     var elems = document.querySelectorAll('.sidenav');
     var instances = M.Sidenav.init(elems, options={});
+    var dropdowns = document.querySelectorAll('.dropdown-trigger')
+    for (var i = 0; i < dropdowns.length; i++){
+        M.Dropdown.init(dropdowns[i]);
+    }
   });
 
   {% block extra_JS %}
@@ -113,27 +74,54 @@
   {% block navbar %}
   <div class="row">
     <div class="col s12">
+      <ul id="art_dropdown" class="dropdown-content">
+        <li><a href="/art">About My Work</a>
+        </li>
+        <li><a href="/art/galleries">Galleries</a>
+        </li>
+      </ul>
+      <ul id="tech_dropdown" class="dropdown-content">
+        <li><a href="/email_lists">Email Lists</a>
+        </li>
+        <li><a href="/archives">List Archives</a>
+        </li>
+        <li><a href="/downloads">Downloads</a>
+        </li>
+        <li><a href="https://github.com/EdLeafe?tab=repositories">My GitHub</a>
+        </li>
+      </ul>
+      <ul id="art_dropdown_side" class="dropdown-content">
+        <li><a href="/art">About My Work</a>
+        </li>
+        <li><a href="/art/galleries">Galleries</a>
+        </li>
+      </ul>
+      <ul id="tech_dropdown_side" class="dropdown-content">
+        <li><a href="/email_lists">Email Lists</a>
+        </li>
+        <li><a href="/archives">List Archives</a>
+        </li>
+        <li><a href="/downloads">Downloads</a>
+        </li>
+        <li><a href="https://github.com/EdLeafe?tab=repositories">My GitHub</a>
+        </li>
+      </ul>
       <nav class="light-blue">
         <div class="nav-wrapper">
             <a href="#!" class="brand-logo">
             <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i>
             </a>
               <img src="{{ url_for('static', filename='maple_leaf_small.png') }}" alt="Home" />
-              Ed Leafe - Website</a>
+              Ed Leafe</a>
             <ul class="right hide-on-med-and-down">
               <li><a href="/">Home</a>
               </li>
-              <li><a href="/email_lists">Email Lists</a>
+              <!-- Dropdown Trigger -->
+              <li><a class="dropdown-trigger" href="#!" data-target="art_dropdown">Art<i class="material-icons right">arrow_drop_down</i></a>
               </li>
-              <li><a href="/archives">List Archives</a>
-              </li>
-              <li><a href="/downloads">Downloads</a>
+              <li><a class="dropdown-trigger" href="#!" data-target="tech_dropdown">Technology<i class="material-icons right">arrow_drop_down</i></a>
               </li>
               <li><a href="https://blog.edleafe.com">Blog</a>
-              </li>
-              <li><a href="https://art.edleafe.com">Art</a>
-              </li>
-              <li><a href="https://github.com/EdLeafe?tab=repositories">GitHub</a>
               </li>
             </ul>
         </div>
@@ -141,18 +129,13 @@
       <ul class="sidenav" id="mobile-demo">
         <li><a href="/">Home</a>
         </li>
-        <li><a href="/email_lists">Email Lists</a>
+        <!-- Dropdown Trigger -->
+        <li><a class="dropdown-trigger" href="#!" data-target="art_dropdown_side">Art<i class="material-icons right">arrow_drop_down</i></a>
         </li>
-        <li><a href="/archives">List Archives</a>
-        </li>
-        <li><a href="/downloads">Downloads</a>
+        <li><a class="dropdown-trigger" href="#!" data-target="tech_dropdown_side">Technology<i class="material-icons right">arrow_drop_down</i></a>
         </li>
         <li><a href="https://blog.edleafe.com">Blog</a>
         </li>
-		<li><a href="https://art.edleafe.com">Art</a>
-		</li>
-		<li><a href="https://github.com/EdLeafe?tab=repositories">GitHub</a>
-		</li>
       </ul>
     </div>
   </div>

@@ -1,9 +1,10 @@
 import os
 import pyrax
-from datetime import datetime
+import datetime
 from functools import wraps, update_wrapper
 import logging
 import math
+import re
 from subprocess import Popen, PIPE
 import uuid
 
@@ -12,13 +13,38 @@ import pymysql
 
 
 main_cursor = None
-HOST = "dodb"
+HOST = "dodata"
 conn = None
 
 LOG = logging.getLogger(__name__)
 BASE_DIR = "/home/ed/projects/leafe"
+PHRASE_PAT = re.compile('"([^"]*)"*')
 
 IntegrityError = pymysql.err.IntegrityError
+
+
+class DotDict(dict):
+    """
+    Dictionary subclass that allows accessing keys via dot notation.
+
+    If the key is not present, an AttributeError is raised.
+    """
+    _att_mapper = {}
+    _fail = object()
+
+    def __init__(self, *args, **kwargs):
+        super(DotDict, self).__init__(*args, **kwargs)
+
+    def __getattr__(self, att):
+        att = self._att_mapper.get(att, att)
+        ret = self.get(att, self._fail)
+        if ret is self._fail:
+            raise AttributeError("'%s' object has no attribute '%s'" %
+                    (self.__class__.__name__, att))
+        return ret
+
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
 
 
 def runproc(cmd):
@@ -57,6 +83,7 @@ def get_cursor():
         LOG.debug("No DB connection")
         main_cursor = None
         conn = connect()
+    conn.ping(reconnect=True)
     if not main_cursor:
         LOG.debug("No cursor")
         main_cursor = conn.cursor(pymysql.cursors.DictCursor)
@@ -80,7 +107,7 @@ def nocache(view):
     @wraps(view)
     def no_cache(*args, **kwargs):
         response = make_response(view(*args, **kwargs))
-        response.headers["Last-Modified"] = datetime.now()
+        response.headers["Last-Modified"] = datetime.datetime.now()
         response.headers["Cache-Control"] = "no-store, no-cache, " \
                 "must-revalidate, post-check=0, pre-check=0, max-age=0"
         response.headers["Pragma"] = "no-cache"
@@ -121,3 +148,69 @@ def get_client():
 def get_gallery_container():
     clt = get_client()
     return clt.get_container("galleries")
+
+
+def _parse_search_terms(term_string):
+    phrases = PHRASE_PAT.findall(term_string)
+    terms = PHRASE_PAT.split(term_string)
+    for phrase in phrases:
+        terms.remove(phrase)
+    words_required = []
+    words_forbidden = []
+    phrases_required = []
+    phrases_forbidden = []
+    for phrase in phrases:
+        phrase = phrase.strip()
+        if phrase.startswith("-"):
+            phrases_forbidden.append(phrase[1:])
+        else:
+            phrases_required.append(phrase)
+    for term in terms:
+        # A 'term' can consist of multiple words.
+        term_words = term.split()
+        for term_word in term_words:
+            term_word = term_word.strip()
+            if term_word.startswith("-"):
+                words_forbidden.append(term_word[1:])
+            else:
+                words_required.append(term_word)
+    # We have the values in lists, but we need simple strings
+    return (" ".join(words_required), " ".join(words_forbidden),
+            " ".join(phrases_required), " ".join(phrases_forbidden))
+
+
+def add_match(lst, key, val, operator=None):
+    if operator:
+        lst.append({"match": {key: {"query": val, "operator": operator}}})
+    else:
+        lst.append({"match": {key: val}})
+
+
+def add_match_phrase(lst, key, val):
+    lst.append({"match_phrase": {key: val}})
+
+
+def search_term_query(search_text, search_field, start_date, end_date):
+    kwargs = {"body": {"query": {
+            "bool": {
+                "filter": [],
+                "must": [],
+                "must_not": [],
+            }}}}
+    bqbm = kwargs["body"]["query"]["bool"]["must"]
+    neg_bqbm = kwargs["body"]["query"]["bool"]["must_not"]
+    bqbf = kwargs["body"]["query"]["bool"]["filter"]
+
+    (words_required, words_forbidden, phrases_required,
+            phrases_forbidden) = _parse_search_terms(search_text)
+    if words_required:
+        add_match(bqbm, search_field, words_required, operator="and")
+    if words_forbidden:
+        add_match(neg_bqbm, search_field, words_forbidden, operator="and")
+    if phrases_required:
+        add_match_phrase(bqbm, search_field, phrases_required)
+    if phrases_forbidden:
+        add_match_phrase(neg_bqbm, search_field, phrases_forbidden)
+    bqbf.append({"range": {"posted": {"gte": start_date, "lt": end_date}}})
+
+    return kwargs

@@ -1,0 +1,150 @@
+{% extends "master.html" %}
+{% block title %}IRC Full Text Search{% endblock %}
+
+{% block extra_JS %}
+
+  var allstart = new Date(2017, 0, 1);
+  var st_all = allstart.toISOString().split("T")[0];
+  var now = new Date();
+  var now_utc = new Date(now.getTime() + now.getTimezoneOffset() * 60000);
+  var st_now = now_utc.toISOString().split("T")[0];
+  var tomorrow = new Date();
+  var tomorrow_utc = new Date(tomorrow.getTime() + tomorrow.getTimezoneOffset() * 60000);
+  tomorrow_utc.setDate(tomorrow_utc.getDate()+1);
+  var st_tomorrow = tomorrow_utc.toISOString().split("T")[0];
+
+  var channel_names = {
+    {% for channel_name in g.channels %}
+  "{{ channel_name }}": null,{% endfor %}
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('select');
+    var instances = M.FormSelect.init(elems, options={});
+
+    elems = document.querySelectorAll('.autocomplete');
+    instances = M.Autocomplete.init(elems, {"data": channel_names});
+
+    elems = document.querySelectorAll('.modal');
+    instances = M.Modal.init(elems, options={});
+
+	elems = document.querySelectorAll('.datepicker');
+    instances = M.Datepicker.init(elems, options={'format':'yyyy-mm-dd', 'yearRange': 4, 'autoClose': false});
+    for (var i = 0; i < elems.length; i++) {
+      var elem = elems[i];
+      if (elem.id == "start_date") {
+        elem.value = st_all;
+      } else if (elem.id == "end_date") {
+        elem.value = st_tomorrow;
+      }
+    }
+  });
+{% endblock%}
+
+{% block extra_css %}
+<style>
+td{
+    padding: 8px;
+}
+</style>
+{% endblock %}
+
+  {% block content %}
+
+  <form method="post" id="search" name="search" action="/ircsearch">
+  <div class="row">
+    <div class="col s8">
+      <h4>Search the OpenStack IRC archives</h4>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col s6">
+      <div class="input-field">
+        <i class="material-icons prefix">textsms</i>
+        <label for="channel">Channel - Type to Select (leave blank for "all")</label>
+        <input type="text" id="channel" name="channel" class="autocomplete">
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col s4">
+      <div class="input-field">
+        <label for="msg_text">Search Messages</label>
+        <input type="text" id="msg_text" name="msg_text">
+      </div>
+    </div>
+    <div class="col s5">
+      <!-- Modal Trigger -->
+      <button data-target="format_howto" class="btn modal-trigger">Formatting Help</button>
+    </div>
+	<!-- Modal Structure -->
+	<div id="format_howto" class="modal">
+	  <div class="modal-content">
+	    <h4>How to Format Search Terms</h4>
+		<p>Enter your search terms below. These will be used to find messages whose bodies contain those terms.</p>
+		<p>Results will include all individual words in the search terms.</p>
+		<p>To indicate that a term must <b><i>NOT</i></b> be in the results, prefix it with a minus sign (<b>-</b>)</p>
+		<p>To search for a particular phrase, surround that phrase with double quotes</p>
+		<p>To exclude a particular phrase, add a minus sign (<b>-</b>) as the first character inside the quotes.</p>
+		<p>Examples:</p>
+		<p><blockquote>addition math -remodel</blockquote></p>
+		<p><i class="tiny material-icons">lens</i> This will return entries containing the words 'addition' and 'math', but not if it also includes the word 'remodel'.</p>
+		<p><blockquote>database "corrupted index"</blockquote></p>
+		<p><i class="tiny material-icons">lens</i> This will return all entries with the word 'database' and the exact phrase 'corrupted index'.</p>
+		<p><blockquote>database "-corrupted index"</blockquote></p>
+		<p><i class="tiny material-icons">lens</i> This will return all entries with the word 'database', but <b><i>not</i></b> any with the exact phrase 'corrupted index'.</p>
+	  </div>
+	  <div class="modal-footer">
+	    <a href="#!" class="modal-close waves-effect waves-green btn-flat">Close</a>
+	  </div>
+	</div>
+  </div>
+
+  <div class="row">
+    <div class="col s6">
+      <div class="input-field">
+        <label for="nick">Search Nicks</label>
+        <input type="text" id="nick" name="nick">
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+  <div class="col s2">
+    <label for="start_date">
+    <input type="text" class="datepicker" id="start_date" name="start_date" placeholder="Start Date" >
+    Start Date</label>
+  </div>
+
+  <div class="col s2 offset-s1">
+    <label for="end_date">
+    <input type="text" class="datepicker" id="end_date" name="end_date" placeholder="End Date">
+    End Date</label>
+  </div>
+  </div>
+
+  <div class="row">
+  <div class="col s6">
+    <label for=sort_order">Sort Results By</label>
+    <div class="input-field">
+    <select id="sort_order" name="sort_order">
+      <option value="recent_first" selected>Most Recent First</option>
+      <option value="oldest_first">Oldest First</option>
+    </select>
+    </div>
+  </div>
+  </div>
+
+  <div class="row">
+  <div class="col s3">
+  <button class="btn waves-effect waves-light" type="submit" name="action">Submit
+    <i class="material-icons right">send</i>
+  </button>
+  </div>
+  </div>
+
+  </form>
+  {% endblock %}
+

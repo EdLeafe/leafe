@@ -4,10 +4,25 @@
 
     {% block content %}
 
+    <a name="top"> </a>
+    <div class="card blue lighten-5">
+      <div class="card-content black-text">
+        <span class="card-title">Index</span>
+        {% for msg in g.messages %}
+        <div class="row">
+          <div class="col s8">
+            <a href="#msg_{{ msg.msg_num }}">{{ fmt_short_date(msg.posted) }}</a> – <b>{{ fmt_author(msg.from) }}</b>: {{ msg.subject }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
     {% for msg in g.messages %}
       <div class="z-depth-3">
         <div class="row" style="padding-top: 40px;">
           <div class="col s5 offset-s2">
+          <a name="msg_{{ msg.msg_num }}" href="#top">Back to top </a>
             <div class="card blue darken-4">
               <div class="card-content white-text">
                 <span class="card-title">{{ msg.subject }}</span>
@@ -32,7 +47,7 @@
         </div>
         <div class="row">
           <div class="col s7 offset-s1">
-            <a class="hoverable waves-effect waves-light btn navbutton center-align" href="/archives/{{ g.listname }}"><i class="material-icons right">search</i>New Search</a>
+            <a class="hoverable waves-effect waves-light btn navbutton center-align" href="/archives"><i class="material-icons right">search</i>New Search</a>
           </div>
         </div>
       </div>

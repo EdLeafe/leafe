@@ -47,7 +47,6 @@ form_validate = function(frm) {
 {% endblock %}
 
     {% block content %}
-    <div class="container">
       <form  onsubmit="return form_validate(this)" method="post" id="upload_form" name="upload_form" action="/upload_file" enctype="multipart/form-data">
         <div class="row">
           <div class="row">
@@ -129,6 +128,5 @@ form_validate = function(frm) {
     
         </div>
       </form>
-    </div>
 
     {% endblock %}

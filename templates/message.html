@@ -22,20 +22,20 @@
           <div class="card-content black-text">
             <div class="row">
               {% if g.prev_msg_num %}
-                <div class="col s2 offset-s1">
-                  <a class="waves-effect waves-light btn hoverable" href="/archives/msg/{{ g.prev_msg_num }}"><i class="material-icons left">chevron_left</i>Previous Message</a>
+                <div class="col s3">
+                  <a class="waves-effect waves-light btn hoverable" href="/archives/msg/{{ g.prev_msg_num }}"><i class="material-icons left">chevron_left</i>Prior Message</a>
                 </div>
               {% endif %}
               <div class="col s3 center">
                 <a class="waves-effect waves-light btn hoverable" href="/archives/full_thread/{{ g.msg_num }}">Full Thread</a>
               </div>
               {% if g.next_msg_num %}
-                <div class="col s2">
+                <div class="col s3">
                   <a class="waves-effect waves-light btn hoverable" href="/archives/msg/{{ g.next_msg_num }}"><i class="material-icons right">chevron_right</i>Next Message</a>
                 </div>
               {% endif %}
-              <div class="col s3 right offset-3">
-                <a class="waves-effect waves-light btn hoverable" href="/archives/{{ g.listname }}"><i class="material-icons right">search</i>New Search</a>
+              <div class="col s3 right offset-1">
+                <a class="waves-effect waves-light btn hoverable" href="/archives"><i class="material-icons right">search</i>New Search</a>
               </div>
             </div>
           </div>

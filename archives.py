@@ -8,16 +8,18 @@ import time
 import elasticsearch
 from flask import abort, Flask, g, render_template, request, session, url_for
 
-import helpers as h
+import utils
 
-PHRASE_PAT = re.compile('"([^"]*)"*')
+
+LINK_PAT = re.compile(r"(https?://[^\s]+)")
+PLACEHOLDER_TEXT = "ABCDEF%sZYXWVU"
 # Elasticsearch doesn't alllow for accessing more than 10K records, even with
 # using offsets. There are ways around it, but really, a search that pulls more
 # than 10K is not a very good search.
 MAX_RECORDS = 10000
 LIMIT_MSG = "Note: Result sets are limited to %s records" % MAX_RECORDS
 
-es_client = elasticsearch.Elasticsearch(host="dodb")
+es_client = elasticsearch.Elasticsearch(host="dodata")
 # My original names in the DB suck, so...
 DB_TO_ELASTIC_NAMES = {
         "imsg": "msg_num",
@@ -50,9 +52,9 @@ def _extract_records(resp, translate_to_db=True):
                     rec["posted"], "%Y-%m-%d %H:%M:%S")
             excepts += 1
     if translate_to_db:
-        allrecs = [h.DotDict(rec) for rec in db_names_from_elastic(recs)]
+        allrecs = [utils.DotDict(rec) for rec in db_names_from_elastic(recs)]
     else:
-        allrecs = [h.DotDict(rec) for rec in recs]
+        allrecs = [utils.DotDict(rec) for rec in recs]
     g.date_excepts = excepts
     return allrecs
 
@@ -73,62 +75,33 @@ def _proper_listname(val):
 def _listAbbreviation(val):
     return {"profox": "p", "prolinux": "l", "propython": "y",
             "valentina": "v", "codebook": "c", "testing": "t",
-            "dabo-dev": "d", "dabo-users": ""}.get(val, "")
+            "dabo-dev": "d", "dabo-users": "u"}.get(val, "")
 
 
-def _add_match(lst, key, val, operator=None):
-    if operator:
-        lst.append({"match": {key: {"query": val, "operator": operator}}})
-    else:
-        lst.append({"match": {key: val}})
+def _listFromAbbreviation(val):
+    return {"p": "profox", "l": "prolinux", "y": "propython", "v": "valentina",
+            "c": "codebook", "t": "testing", "d": "dabo-dev",
+            "u": "dabo-users", }.get(val, "")
 
 
-def _add_match_phrase(lst, key, val):
-    lst.append({"match_phrase": {key: val}})
-
-
-def _parse_search_terms(term_string):
-    phrases = PHRASE_PAT.findall(term_string)
-    terms = PHRASE_PAT.split(term_string)
-    for phrase in phrases:
-        terms.remove(phrase)
-    words_required = []
-    words_forbidden = []
-    phrases_required = []
-    phrases_forbidden = []
-    for phrase in phrases:
-        phrase = phrase.strip()
-        if phrase.startswith("-"):
-            phrases_forbidden.append(phrase[1:])
-        else:
-            phrases_required.append(phrase)
-    for term in terms:
-        # A 'term' can consist of multiple words.
-        term_words = term.split()
-        for term_word in term_words:
-            term_word = term_word.strip()
-            if term_word.startswith("-"):
-                words_forbidden.append(term_word[1:])
-            else:
-                words_required.append(term_word)
-    # We have the values in lists, but we need simple strings
-    return (" ".join(words_required), " ".join(words_forbidden),
-            " ".join(phrases_required), " ".join(phrases_forbidden))
-
-
-def archives_form(listname=None):
-    g.listname = listname
-    g.proper_listname = _proper_listname(listname)
+def archives_form():
+    g.listname = session.get("listname", "zippo")
     return render_template("archives_form.html")
     
 
 def _format_author(val):
-    val = val.split("<")[0]
-    return val.replace('"', '')
+    split_val = val.split("<")[0]
+    if not split_val:
+        return val
+    return split_val.replace('"', '')
 
 
 def _format_date(val):
     return val.strftime("%Y-%m-%d at %H:%M:%S")
+
+
+def _format_short_date(val):
+    return val.strftime("%Y-%m-%d %H:%M")
 
 
 def _pager_text():
@@ -165,7 +138,34 @@ def _pager_text():
     </div>
     """
 
+
+def _linkify(txt):
+    replacements = []
+    set_links = set(LINK_PAT.findall(txt))
+    links = list(set_links)
+    # Shorter links may be a subset of longer links, so replace longer ones first.
+    links.sort(key=len, reverse=True)
+    for num, link in enumerate(links):
+        # Some links can contain asterisks, which blows up re.
+        link = link.replace("*", "[*]")
+        try:
+            linked = f'<a href="{link}" target="_blank">{link}</a>'
+        except Exception:
+            # Funky characters; not much you can do.
+            continue
+        # Replace the original links in the text with placeholders
+        txt = txt.replace(link, PLACEHOLDER_TEXT % num)
+        replacements.append(linked)
+    # OK, now replace the placeholders with the links
+    for num, link in enumerate(replacements):
+        target = PLACEHOLDER_TEXT % num
+        txt = txt.replace(target, replacements[num])
+    return txt
+
+
 def _wrap_text(txt):
+    txt = txt.replace("<", "&lt;")
+    txt = _linkify(txt)
     ret = []
     for ln in txt.splitlines():
         if ln.startswith(">"):
@@ -214,8 +214,36 @@ def show_full_thread(msg_num):
     if not allrecs:
         abort(404, "No message with id=%s exists" % msg_num)
     g.messages = allrecs
-    func_dict = {"fmt_author": _format_author, "wrap": _wrap_text}
+    func_dict = {"fmt_author": _format_author, "wrap": _wrap_text,
+            "fmt_short_date": _format_short_date}
     return render_template("fullthread.html", **func_dict)
+
+
+def show_message_by_msgid(msg_id):
+    kwargs = {"body": {"query": {"match": {"message_id": msg_id}}}}
+    resp = es_client.search("email", doc_type="mail", **kwargs)
+    allrecs = _extract_records(resp, translate_to_db=False)
+    if not allrecs:
+        abort(404, "No message with id=%s exists" % msg_num)
+    g.message = allrecs[0]
+    g.msg_num = msg_num = g.message.get("msg_num")
+    g.subject = g.message.get("subject")
+    g.author = _format_author(g.message.get("from"))
+    g.copy_year = g.message.get("posted").year
+    g.posted = _format_date(g.message.get("posted"))
+    g.body = _wrap_text(g.message.get("body"))
+    g.session = session
+    list_abb = g.message.get("list_name")
+    g.listname = session["listname"] = _listFromAbbreviation(list_abb)
+    full_results = session.get("full_results", [])
+    try:
+        pos = full_results.index(msg_num)
+        g.prev_msg_num = full_results[pos - 1] if pos > 0 else ""
+        g.next_msg_num = full_results[pos + 1] if pos + 1 < len(full_results) else ""
+    except ValueError:
+        # Not coming from a search
+        g.prev_msg_num = g.next_msg_num = ""
+    return render_template("message.html")
 
 
 def show_message(msg_num):
@@ -239,8 +267,8 @@ def show_message(msg_num):
     return render_template("message.html")
 
 
-def archives_results_GET(listname):
-    g.listname = session["listname"] = listname
+def archives_results_GET():
+    g.listname = session["listname"]
     g.elapsed = session["elapsed"]
     g.total_pages = session["total_pages"]
     g.limit_msg = session["limit_msg"]
@@ -263,57 +291,44 @@ def archives_results_GET(listname):
     return render_template("archive_results.html", **func_dict)
 
 
-def archives_results_POST(listname):
+def archives_results_POST():
     # Clear any old session data
-#    session = {}
     for key in ("listname", "elapsed", "total_pages", "limit_msg",
             "num_results", "full_results", "batch_size", "kwargs"):
         session.pop(key, None)
-    g.listname = session["listname"] = listname
+    g.listname = session["listname"] = request.form.get("listname")
     body_terms = request.form.get("body_terms")
     subject = request.form.get("subject_phrase")
     author = request.form.get("author")
     start_date = request.form.get("start_date")
     end_date = request.form.get("end_date")
+    # We want to include items on the end date, so extend the search to the
+    # following date.
+    end_date_dt = (datetime.datetime.strptime(end_date, "%Y-%m-%d") +
+            datetime.timedelta(days=1))
+    end_date_plus = end_date_dt.strftime("%Y-%m-%d")
     sort_order = _get_sort_order(request.form.get("sort_order"))
     include_OT = bool(request.form.get("chk_OT"))
     include_NF = bool(request.form.get("chk_NF"))
     batch_size = int(request.form.get("batch_size"))
 
-    kwargs = {"body": {"query": {
-            "bool": {
-                "must": [],
-                "must_not": [],
-            }}}}
+    kwargs = utils.search_term_query(body_terms, "body", start_date,
+            end_date_plus)
     bqbm = kwargs["body"]["query"]["bool"]["must"]
     neg_bqbm = kwargs["body"]["query"]["bool"]["must_not"]
 
-    listabb = _listAbbreviation(listname)
-    _add_match(bqbm, "list_name", listabb)
-
-    (words_required, words_forbidden, phrases_required,
-            phrases_forbidden) = _parse_search_terms(body_terms)
-    if words_required:
-        _add_match(bqbm, "body", words_required, operator="and")
-    if words_forbidden:
-        _add_match(neg_bqbm, "body", words_forbidden, operator="and")
-    if phrases_required:
-        _add_match_phrase(bqbm, "body", phrases_required)
-    if phrases_forbidden:
-        _add_match_phrase(neg_bqbm, "body", phrases_forbidden)
+    listabb = _listAbbreviation(g.listname)
+    utils.add_match(bqbm, "list_name", listabb)
     if subject:
-        _add_match_phrase(bqbm, "fulltext_subject", subject)
+        utils.add_match_phrase(bqbm, "fulltext_subject", subject)
     if author:
         expr = "*%s*" % author
         bqbm.append({"wildcard": {"from": expr}})
     if listabb == "p":
         if not include_OT:
-            _add_match(neg_bqbm, "subject", "[OT]")
+            utils.add_match(neg_bqbm, "subject", "[OT]")
         if not include_NF:
-            _add_match(neg_bqbm, "subject", "[NF]")
-
-    bqbm.append({"range": {"posted": {"gte": start_date}}})
-    bqbm.append({"range": {"posted": {"lte": end_date}}})
+            utils.add_match(neg_bqbm, "subject", "[NF]")
     if sort_order:
         kwargs["sort"] = [sort_order]
 
@@ -329,6 +344,7 @@ def archives_results_POST(listname):
     kwargs["_source"] = ["msg_num"]
     startTime = time.time()
     resp = es_client.search("email", doc_type="mail", **kwargs)
+    session["elapsed"] = g.elapsed = "%.4f" % (time.time() - startTime)
     g.full_results = [r["_source"]["msg_num"] for r in resp["hits"]["hits"]]
     session["full_results"] = g.full_results
     session["num_results"] = g.num_results = resp["hits"]["total"]
@@ -345,7 +361,6 @@ def archives_results_POST(listname):
     session["batch_size"] = batch_size
     session["kwargs"] = g.kwargs = kwargs
     resp = es_client.search("email", doc_type="mail", **kwargs)
-    session["elapsed"] = g.elapsed = "%.4f" % (time.time() - startTime)
     total = "{:,}".format(resp["hits"]["total"])
     g.results = _extract_records(resp, translate_to_db=False)
     g.session = session

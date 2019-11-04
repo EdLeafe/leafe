@@ -1,5 +1,5 @@
 {% extends "master.html" %}
-{% block extra_css %}
+{% block extra_CSS %}
   <style>
     .container {
       width: 100vw;
@@ -7,10 +7,10 @@
       margin: auto;
     }
     .container img {
-      display: block;
-      max-width: 100%;
-      max-height: 100%;
+      width: 100%;
+      height: 100%;
       object-fit: contain;
+      display: block;
       margin: auto;
     }
     .navarrow {
@@ -32,14 +32,18 @@
       color: white;
       text-align: center;
     }
-	body { 
-	  background: #000000; 
-	}
+    body { 
+      background: #000000; 
+    }
   </style>
 {% endblock %}
 
 {% block extra_JS %}
-  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var elems = document.querySelectorAll('.materialboxed');
+      var instances = M.Materialbox.init(elems, options={});
+    });
+
     document.onkeydown= function(key){ reactKey(key); }
     document.onmousedown= function(foo){ reactMouse(foo); }
     var images = []
@@ -50,8 +54,9 @@
 
     function navigate(move) {
        var obj = document.getElementById("main");
-       var curr_img = obj.src.split(":").slice(-1)[0]
-       var curr_pos = images.indexOf(curr_img);
+       var curr_img_src = obj.src
+       var curr_img_loc = curr_img_src.split(":").slice(-1)[0]
+       var curr_pos = images.indexOf(curr_img_src);
        var new_pos = curr_pos + move;
        if (new_pos >=0 && new_pos < num_images) {
          obj.src = images[new_pos];
@@ -60,13 +65,13 @@
        }
     }
 
-	function reactKey(evt) {
-	  if(evt.keyCode== 37) {
+    function reactKey(evt) {
+      if(evt.keyCode== 37) {
         navigate(-1);   
-	  } else if(evt.keyCode== 39) {
+      } else if(evt.keyCode== 39) {
         navigate(1);   
       }
-	}
+    }
 
     function reactMouse(evt) {
       var locX = evt.x ;
@@ -88,14 +93,14 @@
       return ret ;
     }
 
-	var touchXstart = -1;
+    var touchXstart = -1;
     var movement = 0;
-	window.addEventListener('load', function(){ // on page load
-		document.body.addEventListener('touchstart', function(e){
-		  touchXstart = e.changedTouches[0].pageX;
-		}, false)
-		document.body.addEventListener('touchend', function(e){
-		  var endX = e.changedTouches[0].pageX;
+    window.addEventListener('load', function(){ // on page load
+        document.body.addEventListener('touchstart', function(e){
+          touchXstart = e.changedTouches[0].pageX;
+        }, false)
+        document.body.addEventListener('touchend', function(e){
+          var endX = e.changedTouches[0].pageX;
           if (endX > touchXstart) {
             movement = -1;
           } else if (endX < touchXstart){
@@ -104,7 +109,7 @@
           navigate(movement);
           touchXstart = -1;
           movement = 0;
-		}, false)
+        }, false)
         var isMobile = 'ontouchstart' in document.documentElement;
         var navtext = document.getElementById("navtext");
         if (isMobile) {
@@ -112,8 +117,7 @@
         } else {
             navtext.innerHTML = "Use the left and right arrow keys to navigate";
         }
-	}, false)
-  </script>
+    }, false)
 {% endblock %}
 {% block title %}{{ g.gallery_name }}{% endblock %}
 
@@ -122,13 +126,21 @@
     <p id="navtext" class="helptext"></p>
   </div>
 
-<!--  <div class="image_display">
-  </div>
--->
   <div class="navarrow">
     <span>X</span>
   </div>
-    <div class="container">
-      <img id="main" src="{{ g.photos[0] }}" />
+
+  <div class="container">
+    <img id="main" src="{{ g.photos[0] }}" />
+  </div>
+  <div class="spinner-layer spinner-yellow">
+    <div class="circle-clipper left">
+      <div class="circle"></div>
     </div>
+  <div class="gap-patch">
+    <div class="circle"></div>
+  </div>
+  <div class="circle-clipper right">
+    <div class="circle"></div>
+  </div>
   {% endblock %}

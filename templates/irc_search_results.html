@@ -1,0 +1,83 @@
+{% extends "master.html" %}
+
+  {% block extra_CSS %}
+  <style>
+  .date_header{
+      padding-top: 1rem;
+      font-size: 1.0rem;
+      font-weight: bold;
+      font-color: #00FF00;
+  }
+  td.nick {
+      font-weight: bold;
+  }
+  </style>
+  {% endblock %}
+
+  {% block extra_JS %}
+  function show_logs(chan, tm){
+      var url = "/timeline-middle/" + chan + "/" + tm;
+      this.window.location.href = url;
+  }
+  {% endblock %}
+
+{% block title %}IRC Search Results{% endblock %}
+
+    {% block content %}
+
+    <div class="row">
+      <div class="col s9">
+        <h5>Your query returned <b>{{ g.num_results }}</b> match{{ "es" if g.num_results > 1 else "" }} in <b><i>{{ g.elapsed }} seconds</i></b></h5>
+      </div>
+    </div>
+
+	<div class="row">
+      <div class="col l4">
+        <a href="/ircsearch">New Search</a>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col s9">
+        {% set ns = namespace(currdate="") %}
+        <table>
+          <thead>
+          <tr>
+              <th class="logs_link">Show Logs</th>
+              <th class="channel">Channel</th>
+              <th class="posted">Posted</th>
+              <th class="nick">Nick</th>
+              <th class="remark">Remark</th>
+          </tr>
+          </thead>
+          <tbody>
+            {% set rows = g.results %}
+
+            {% for row in rows %}
+            {% set esc_chan = row["channel"].replace("#", "%23") %}
+            {% set remark_class = "gerrit" if "gerrit" in row["nick"] else "remark" %}
+            {% set pdate = row["posted"].rsplit("T")[0] %}
+            {% set ptime = row["posted"].rsplit("T")[1] %}
+            {% if pdate != ns.currdate %}
+            <tr>
+              <td colspan="4" class="date_header">{{ pdate }}</td>
+            </tr>
+            {% set ns.currdate = pdate %}
+            {% endif %}
+            <tr>
+              <td>
+                <a class="waves-effect waves-light btn-small" onclick="show_logs('{{ esc_chan }}', '{{ row["""posted"""] }}');">Show</a>
+              </td>
+              <td class="channel">{{ row["channel"] }}</td>
+              <td class="posted">{{ ptime }}</td>
+              <td class="nick">{{ row["nick"] }}</td>
+              <td class="{{ remark_class }}">{{ g.hilite(row["remark"])|safe }}</td>
+          </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+
+    {% endblock %}

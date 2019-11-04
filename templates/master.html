@@ -77,6 +77,8 @@
       <ul id="art_dropdown" class="dropdown-content">
         <li><a href="/art">About My Work</a>
         </li>
+        <li><a href="/art/design">Design Philosophy</a>
+        </li>
         <li><a href="/art/galleries">Galleries</a>
         </li>
       </ul>
@@ -87,11 +89,15 @@
         </li>
         <li><a href="/downloads">Downloads</a>
         </li>
+        <li><a href="/ircsearch">OpenStack IRC Search</a>
+        </li>
         <li><a href="https://github.com/EdLeafe?tab=repositories">My GitHub</a>
         </li>
       </ul>
       <ul id="art_dropdown_side" class="dropdown-content">
         <li><a href="/art">About My Work</a>
+        </li>
+        <li><a href="/art/design">Design Philosophy</a>
         </li>
         <li><a href="/art/galleries">Galleries</a>
         </li>
@@ -103,27 +109,31 @@
         </li>
         <li><a href="/downloads">Downloads</a>
         </li>
+        <li><a href="/ircsearch">OpenStack IRC Search</a>
+        </li>
         <li><a href="https://github.com/EdLeafe?tab=repositories">My GitHub</a>
         </li>
       </ul>
       <nav class="light-blue">
         <div class="nav-wrapper">
-            <a href="#!" class="brand-logo">
-            <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i>
-            </a>
+          <a href="#!" class="brand-logo">
+            <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+            <a href="/">
               <img src="{{ url_for('static', filename='maple_leaf_small.png') }}" alt="Home" />
-              Ed Leafe</a>
-            <ul class="right hide-on-med-and-down">
-              <li><a href="/">Home</a>
-              </li>
-              <!-- Dropdown Trigger -->
-              <li><a class="dropdown-trigger" href="#!" data-target="art_dropdown">Art<i class="material-icons right">arrow_drop_down</i></a>
-              </li>
-              <li><a class="dropdown-trigger" href="#!" data-target="tech_dropdown">Technology<i class="material-icons right">arrow_drop_down</i></a>
-              </li>
-              <li><a href="https://blog.edleafe.com">Blog</a>
-              </li>
-            </ul>
+              Ed Leafe
+            </a>
+          </a>
+          <ul class="right hide-on-med-and-down">
+            <li><a href="/">Home</a>
+            </li>
+            <!-- Dropdown Trigger -->
+            <li><a class="dropdown-trigger" href="#!" data-target="art_dropdown">Art<i class="material-icons right">arrow_drop_down</i></a>
+            </li>
+            <li><a class="dropdown-trigger" href="#!" data-target="tech_dropdown">Technology<i class="material-icons right">arrow_drop_down</i></a>
+            </li>
+            <li><a href="https://blog.leafe.com">Blog</a>
+            </li>
+          </ul>
         </div>
       </nav>
       <ul class="sidenav" id="mobile-demo">
@@ -134,17 +144,16 @@
         </li>
         <li><a class="dropdown-trigger" href="#!" data-target="tech_dropdown_side">Technology<i class="material-icons right">arrow_drop_down</i></a>
         </li>
-        <li><a href="https://blog.edleafe.com">Blog</a>
+        <li><a href="https://blog.leafe.com">Blog</a>
         </li>
       </ul>
     </div>
   </div>
   {% endblock %}
 
-    <div class="row">
     {% if error %}
+    <div class="row">
       <p class=error><strong>Error:</strong> {{ error }}
-    {% endif %}
     {% with messages = get_flashed_messages(with_categories=true) %}
        {% if messages %}
           <ul>
@@ -159,9 +168,12 @@
        {% endif %}
     {% endwith %}
     </div>
+    {% endif %}
 
+    <div class="container">
     {% block content %}
     {% endblock %}
+    </div>
 
   </div>
 </body>

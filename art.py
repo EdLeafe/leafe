@@ -8,11 +8,15 @@ import pyrax
 
 import utils
 
-BASE_URI = "//67bc544c4d4c52d03a29-d7000c07746d5de17226f99a444d9940.ssl.cf1.rackcdn.com"
+BASE_URI = "https://67bc544c4d4c52d03a29-d7000c07746d5de17226f99a444d9940.ssl.cf1.rackcdn.com"
 
 
 def about():
     return render_template("art_about.html")
+
+
+def design():
+    return render_template("art_design.html")
 
 
 def show_galleries():

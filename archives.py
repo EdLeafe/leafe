@@ -85,7 +85,7 @@ def _listFromAbbreviation(val):
 
 
 def archives_form():
-    g.listname = session.get("listname", "zippo")
+    g.listname = session.get("listname", "")
     return render_template("archives_form.html")
     
 
@@ -318,7 +318,8 @@ def archives_results_POST():
     neg_bqbm = kwargs["body"]["query"]["bool"]["must_not"]
 
     listabb = _listAbbreviation(g.listname)
-    utils.add_match(bqbm, "list_name", listabb)
+    if listabb:
+        utils.add_match(bqbm, "list_name", listabb)
     if subject:
         utils.add_match_phrase(bqbm, "fulltext_subject", subject)
     if author:

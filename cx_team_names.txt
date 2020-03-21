@@ -7,3 +7,4 @@ Ostap Andrusiv
 Robin Johnson
 Taras Lyapun
 Denys Kolomytskyi
+Dmytro Nykonenko

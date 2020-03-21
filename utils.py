@@ -10,6 +10,7 @@ import uuid
 
 from flask import make_response
 import pymysql
+import requests
 
 
 main_cursor = None
@@ -150,9 +151,21 @@ def get_gallery_container():
     return clt.get_container("galleries")
 
 
+def download(remote_url, folder, fname):
+    """Download the file at the remote address, and write it to the specified
+    folder
+    """
+    dl = requests.get(remote_url, allow_redirects=True)
+    location = os.path.join(folder, fname)
+    with open(location, "wb") as ff:
+        ff.write(dl.content)
+
+
 def _parse_search_terms(term_string):
     phrases = PHRASE_PAT.findall(term_string)
+#    debug("Phrases:", phrases)
     terms = PHRASE_PAT.split(term_string)
+#    debug("Terms:", terms)
     for phrase in phrases:
         terms.remove(phrase)
     words_required = []
@@ -162,8 +175,10 @@ def _parse_search_terms(term_string):
     for phrase in phrases:
         phrase = phrase.strip()
         if phrase.startswith("-"):
+#            debug("Forbidden phrase:", phrase)
             phrases_forbidden.append(phrase[1:])
         else:
+#            debug("Allowed phrase:", phrase)
             phrases_required.append(phrase)
     for term in terms:
         # A 'term' can consist of multiple words.
@@ -171,8 +186,10 @@ def _parse_search_terms(term_string):
         for term_word in term_words:
             term_word = term_word.strip()
             if term_word.startswith("-"):
+#                debug("Forbidden term:", term_word)
                 words_forbidden.append(term_word[1:])
             else:
+#                debug("Allowed term:", term_word)
                 words_required.append(term_word)
     # We have the values in lists, but we need simple strings
     return (" ".join(words_required), " ".join(words_forbidden),

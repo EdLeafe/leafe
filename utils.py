@@ -1,13 +1,15 @@
-import os
-import pyrax
 import datetime
 from functools import wraps, update_wrapper
 import logging
 import math
+import os
+import pyrax
 import re
 from subprocess import Popen, PIPE
+import time
 import uuid
 
+import boto
 from flask import make_response
 import pymysql
 import requests
@@ -19,9 +21,19 @@ conn = None
 
 LOG = logging.getLogger(__name__)
 BASE_DIR = "/home/ed/projects/leafe"
+LOGIT_FILE = os.path.join(BASE_DIR, "LOGOUT")
 PHRASE_PAT = re.compile('"([^"]*)"*')
 
 IntegrityError = pymysql.err.IntegrityError
+
+
+def logit(*msgs):
+    tm = datetime.datetime.utcnow().replace(microsecond=0)
+    tmstr = time.strftime("%Y-%m-%dT%H:%M:%S")
+    msg_str = " ".join(["%s" % m for m in msgs])
+    msg = tmstr + " " + msg_str
+    with open(LOGIT_FILE, "a") as ff:
+        ff.write("{}\n".format(msg))
 
 
 class DotDict(dict):
@@ -137,7 +149,52 @@ def human_fmt(num):
         return "1 byte"
 
 
+def _user_creds():
+    with open("docreds.rc") as ff:
+        creds = ff.read()
+    user_creds = {}
+    for ln in creds.splitlines():
+        if ln.startswith("spacekey"):
+            user_creds["spacekey"] = ln.split("=")[-1].strip()
+        elif ln.startswith("secret"):
+            user_creds["secret"] = ln.split("=")[-1].strip()
+        elif ln.startswith("bucket"):
+            user_creds["bucket"] = ln.split("=")[-1].strip()
+    return user_creds
+
+
 def get_client():
+    user_creds = _user_creds()
+    conn = boto.connect_s3(aws_access_key_id=user_creds["spacekey"],
+            aws_secret_access_key=user_creds["secret"],
+            host="nyc3.digitaloceanspaces.com")
+    bucket = conn.get_bucket(user_creds["bucket"])
+    return bucket
+
+
+def get_gallery_names():
+    clt = get_client()
+    prefix = "galleries/"
+    all_names = clt.list(prefix=prefix, delimiter="/")
+    full_names = (itm.name for itm in all_names)
+    names = (itm.split(prefix)[-1] for itm in full_names)
+    cleaned = [itm.rstrip("/") for itm in names if itm]
+    return cleaned
+
+
+def get_photos_in_gallery(gallery_name):
+    clt = get_client()
+    prefix = "galleries/{}/".format(gallery_name)
+    all_photos = clt.list(prefix=prefix)
+    full_names = (itm.name for itm in all_photos)
+    names = (itm.split("galleries/")[-1] for itm in full_names)
+    photos = [itm for itm in names if itm != "{}/".format(gallery_name)]
+    return photos
+
+
+
+
+def get_client_RAX():
     pyrax.set_setting("identity_type", "rackspace")
     ctx = pyrax.create_context()
     credfile = os.path.join(BASE_DIR, ".raxcreds")
@@ -146,7 +203,7 @@ def get_client():
     return client
 
 
-def get_gallery_container():
+def get_gallery_container_RAX():
     clt = get_client()
     return clt.get_container("galleries")
 

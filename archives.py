@@ -22,22 +22,23 @@ LIMIT_MSG = "Note: Result sets are limited to %s records" % MAX_RECORDS
 es_client = elasticsearch.Elasticsearch(host="dodata")
 # My original names in the DB suck, so...
 DB_TO_ELASTIC_NAMES = {
-        "imsg": "msg_num",
-        "clist": "list_name",
-        "csubject": "subject",
-        "cfrom": "from",
-        "tposted": "posted",
-        "cmessageid": "message_id",
-        "creplytoid": "replyto_id",
-        "mtext": "body",
-        "id": "id",
-        }
+    "imsg": "msg_num",
+    "clist": "list_name",
+    "csubject": "subject",
+    "cfrom": "from",
+    "tposted": "posted",
+    "cmessageid": "message_id",
+    "creplytoid": "replyto_id",
+    "mtext": "body",
+    "id": "id",
+}
 ELASTIC_TO_DB_NAMES = {v: k for k, v in DB_TO_ELASTIC_NAMES.items()}
 
 
 def db_names_from_elastic(recs):
-    return [dict((ELASTIC_TO_DB_NAMES.get(k), v)
-            for k,v in rec.items()) for rec in recs]
+    return [
+        dict((ELASTIC_TO_DB_NAMES.get(k), v) for k, v in rec.items()) for rec in recs
+    ]
 
 
 def _extract_records(resp, translate_to_db=True):
@@ -46,10 +47,12 @@ def _extract_records(resp, translate_to_db=True):
     for rec in recs:
         try:
             rec["posted"] = datetime.datetime.strptime(
-                    rec["posted"], "%Y-%m-%dT%H:%M:%S")
+                rec["posted"], "%Y-%m-%dT%H:%M:%S"
+            )
         except ValueError:
             rec["posted"] = datetime.datetime.strptime(
-                    rec["posted"], "%Y-%m-%d %H:%M:%S")
+                rec["posted"], "%Y-%m-%d %H:%M:%S"
+            )
             excepts += 1
     if translate_to_db:
         allrecs = [utils.DotDict(rec) for rec in db_names_from_elastic(recs)]
@@ -60,40 +63,62 @@ def _extract_records(resp, translate_to_db=True):
 
 
 def _get_sort_order(order_by):
-    return {"recent_first": "posted:desc",
-            "oldest_first": "posted:asc",
-            "author_name": "from:asc",
-            "natural": ""}.get(order_by)
+    return {
+        "recent_first": "posted:desc",
+        "oldest_first": "posted:asc",
+        "author_name": "from:asc",
+        "natural": "",
+    }.get(order_by)
 
 
 def _proper_listname(val):
-    return {"profox": "ProFox", "prolinux": "ProLinux", "propython":
-            "ProPython", "valentina": "Valentina", "codebook": "Codebook",
-            "dabo-dev": "Dabo-Dev", "dabo-users": "Dabo-Users"}.get(val, "")
+    return {
+        "profox": "ProFox",
+        "prolinux": "ProLinux",
+        "propython": "ProPython",
+        "valentina": "Valentina",
+        "codebook": "Codebook",
+        "dabo-dev": "Dabo-Dev",
+        "dabo-users": "Dabo-Users",
+    }.get(val, "")
 
 
 def _listAbbreviation(val):
-    return {"profox": "p", "prolinux": "l", "propython": "y",
-            "valentina": "v", "codebook": "c", "testing": "t",
-            "dabo-dev": "d", "dabo-users": "u"}.get(val, "")
+    return {
+        "profox": "p",
+        "prolinux": "l",
+        "propython": "y",
+        "valentina": "v",
+        "codebook": "c",
+        "testing": "t",
+        "dabo-dev": "d",
+        "dabo-users": "u",
+    }.get(val, "")
 
 
 def _listFromAbbreviation(val):
-    return {"p": "profox", "l": "prolinux", "y": "propython", "v": "valentina",
-            "c": "codebook", "t": "testing", "d": "dabo-dev",
-            "u": "dabo-users", }.get(val, "")
+    return {
+        "p": "profox",
+        "l": "prolinux",
+        "y": "propython",
+        "v": "valentina",
+        "c": "codebook",
+        "t": "testing",
+        "d": "dabo-dev",
+        "u": "dabo-users",
+    }.get(val, "")
 
 
 def archives_form():
     g.listname = session.get("listname", "")
     return render_template("archives_form.html")
-    
+
 
 def _format_author(val):
     split_val = val.split("<")[0]
     if not split_val:
         return val
-    return split_val.replace('"', '')
+    return split_val.replace('"', "")
 
 
 def _format_date(val):
@@ -117,15 +142,21 @@ def _pager_text():
     for pg in range(pagecount):
         pgnum = pg + 1
         linkstate = "active" if thispage == pgnum else "waves-effect"
-        page_links.append(f"""<li class={linkstate}><a href={url}?page={pgnum}>{pgnum}</a></li>""")
+        page_links.append(
+            f"""<li class={linkstate}><a href={url}?page={pgnum}>{pgnum}</a></li>"""
+        )
     page_link_text = "\n        ".join(page_links)
 
     if thispage == 1:
-        prev_text = """<li class="grey-text"><i class="material-icons">chevron_left</i></li>"""
+        prev_text = (
+            """<li class="grey-text"><i class="material-icons">chevron_left</i></li>"""
+        )
     else:
         prev_text = f"""<li class="waves-effect"><a href="{url}?page={prevpage}"><i class="material-icons">chevron_left</i></a></li>"""
     if thispage == pagecount:
-        next_text = """<li class="grey-text"><i class="material-icons">chevron_right</i></li>"""
+        next_text = (
+            """<li class="grey-text"><i class="material-icons">chevron_right</i></li>"""
+        )
     else:
         next_text = f"""<li class="waves-effect"><a href="{url}?page={nextpage}"><i class="material-icons">chevron_right</i></a></li>"""
 
@@ -169,7 +200,7 @@ def _wrap_text(txt):
     ret = []
     for ln in txt.splitlines():
         if ln.startswith(">"):
-            ret.append(f"<p style=\"font-style: italic; color: grey\">{ln}</p>")
+            ret.append(f'<p style="font-style: italic; color: grey">{ln}</p>')
         else:
             ret.append(f"<p>{ln}</p>")
     return "".join(ret)
@@ -179,13 +210,15 @@ def _regexp_casing(txt):
     """Since elasticsearch doesn't support case-insensitive searches, this is a
     brute-force method to accomplish the same thing.
     """
+
     def case_dupe(s):
         if s in string.ascii_letters:
-            return "[" + s.upper() + s.lower() + "]" 
+            return "[" + s.upper() + s.lower() + "]"
         elif s in '.?+*|{}[]()"\\)]}':
-#        if s in '.?+*|{}[]()"\\)]}':
+            #        if s in '.?+*|{}[]()"\\)]}':
             return f"\\{s}"
         return s
+
     return "".join([case_dupe(char) for char in txt])
 
 
@@ -207,15 +240,22 @@ def show_full_thread(msg_num):
     pat = re.compile(r"^(re: ?)*", re.I)
     clean_subj = pat.sub("", g.subject)
     subj_regexp = "([Rr][Ee]: ?)*" + _regexp_casing(clean_subj)
-    kwargs = {"body": {"query": {"regexp": {"subject": subj_regexp}},
-		"sort": {"posted": "asc"}}}
+    kwargs = {
+        "body": {
+            "query": {"regexp": {"subject": subj_regexp}},
+            "sort": {"posted": "asc"},
+        }
+    }
     resp = es_client.search("email", doc_type="mail", **kwargs)
     allrecs = _extract_records(resp, translate_to_db=False)
     if not allrecs:
         abort(404, "No message with id=%s exists" % msg_num)
     g.messages = allrecs
-    func_dict = {"fmt_author": _format_author, "wrap": _wrap_text,
-            "fmt_short_date": _format_short_date}
+    func_dict = {
+        "fmt_author": _format_author,
+        "wrap": _wrap_text,
+        "fmt_short_date": _format_short_date,
+    }
     return render_template("fullthread.html", **func_dict)
 
 
@@ -286,15 +326,26 @@ def archives_results_GET():
     g.results = _extract_records(resp, translate_to_db=False)
     g.pager_text = _pager_text()
     g.session = session
-    func_dict = {"enumerate": enumerate, "fmt_author": _format_author,
-            "fmt_date": _format_date}
+    func_dict = {
+        "enumerate": enumerate,
+        "fmt_author": _format_author,
+        "fmt_date": _format_date,
+    }
     return render_template("archive_results.html", **func_dict)
 
 
 def archives_results_POST():
     # Clear any old session data
-    for key in ("listname", "elapsed", "total_pages", "limit_msg",
-            "num_results", "full_results", "batch_size", "kwargs"):
+    for key in (
+        "listname",
+        "elapsed",
+        "total_pages",
+        "limit_msg",
+        "num_results",
+        "full_results",
+        "batch_size",
+        "kwargs",
+    ):
         session.pop(key, None)
     g.listname = session["listname"] = request.form.get("listname")
     body_terms = request.form.get("body_terms")
@@ -304,16 +355,16 @@ def archives_results_POST():
     end_date = request.form.get("end_date")
     # We want to include items on the end date, so extend the search to the
     # following date.
-    end_date_dt = (datetime.datetime.strptime(end_date, "%Y-%m-%d") +
-            datetime.timedelta(days=1))
+    end_date_dt = datetime.datetime.strptime(end_date, "%Y-%m-%d") + datetime.timedelta(
+        days=1
+    )
     end_date_plus = end_date_dt.strftime("%Y-%m-%d")
     sort_order = _get_sort_order(request.form.get("sort_order"))
     include_OT = bool(request.form.get("chk_OT"))
     include_NF = bool(request.form.get("chk_NF"))
     batch_size = int(request.form.get("batch_size"))
 
-    kwargs = utils.search_term_query(body_terms, "body", start_date,
-            end_date_plus)
+    kwargs = utils.search_term_query(body_terms, "body", start_date, end_date_plus)
     bqbm = kwargs["body"]["query"]["bool"]["must"]
     neg_bqbm = kwargs["body"]["query"]["bool"]["must_not"]
 
@@ -378,9 +429,13 @@ def archives_results_POST():
 
     g.page = page
     g.pager_text = _pager_text()
-    func_dict = {"enumerate": enumerate, "fmt_author": _format_author,
-            "fmt_date": _format_date}
+    func_dict = {
+        "enumerate": enumerate,
+        "fmt_author": _format_author,
+        "fmt_date": _format_date,
+    }
     return render_template("archive_results.html", **func_dict)
 
-#BATCH_SIZE = 250
-#MAX_PAGES = int(MAX_RECORDS / BATCH_SIZE)
+
+# BATCH_SIZE = 250
+# MAX_PAGES = int(MAX_RECORDS / BATCH_SIZE)

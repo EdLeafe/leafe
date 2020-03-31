@@ -11,7 +11,6 @@ from flask import abort, g, render_template, request, session
 
 import utils
 
-#import dbutil
 
 START_DATE = "2016-01-01"
 END_DATE = "2020-12-31"
@@ -19,11 +18,38 @@ INDEX = "irclog"
 HOST = "dodata"
 PER_PAGE = 100
 LINK_PAT = re.compile(r"(.*)\b(https?://\S+)(.*)", re.I)
-COLORS = ("#407a40", "#42427e", "#488888", "#4b904b", "#4d4d93", "#539e9e",
-        "#57a657", "#5959a9", "#5fb4b4", "#62bb62", "#6464bf", "#6acaca",
-        "#6ed16e", "#7070d5", "#76e0e0", "#818144", "#854685", "#8c4a4a",
-        "#97974f", "#9b519b", "#a25555", "#ad5b5b", "#adad5b", "#b15db1",
-        "#b86161", "#c3c366", "#c668c6", "#ce6c6c", "#a9a942", "#dc74dc")
+COLORS = (
+    "#407a40",
+    "#42427e",
+    "#488888",
+    "#4b904b",
+    "#4d4d93",
+    "#539e9e",
+    "#57a657",
+    "#5959a9",
+    "#5fb4b4",
+    "#62bb62",
+    "#6464bf",
+    "#6acaca",
+    "#6ed16e",
+    "#7070d5",
+    "#76e0e0",
+    "#818144",
+    "#854685",
+    "#8c4a4a",
+    "#97974f",
+    "#9b519b",
+    "#a25555",
+    "#a9a942",
+    "#ad5b5b",
+    "#adad5b",
+    "#b15db1",
+    "#b86161",
+    "#c3c366",
+    "#c668c6",
+    "#ce6c6c",
+    "#dc74dc",
+)
 es_client = Elasticsearch(host=HOST)
 
 
@@ -33,8 +59,11 @@ def _make_username():
 
 
 def _get_channels():
-    resp = es_client.search("irclog", body={"aggs": {"channels": {
-            "terms": {"field": "channel", "size": 1000}}}}, size=0)
+    resp = es_client.search(
+        "irclog",
+        body={"aggs": {"channels": {"terms": {"field": "channel", "size": 1000}}}},
+        size=0,
+    )
     clist = resp.get("aggregations").get("channels").get("buckets")
     retlist = [cl["key"] for cl in clist]
     retlist.sort()
@@ -42,8 +71,9 @@ def _get_channels():
 
 
 def _get_sort_order(order_by):
-    sorttext = {"recent_first": "posted:desc",
-            "oldest_first": "posted:asc"}.get(order_by)
+    sorttext = {"recent_first": "posted:desc", "oldest_first": "posted:asc"}.get(
+        order_by
+    )
     return [sorttext]
 
 
@@ -71,17 +101,6 @@ def make_clickable(p):
 def POST_search_results():
     form = request.form
     sel_channel = form.get("channel")
-#    user_data = session.get("user", {})
-#    if user_data:
-#        username = user_data["username"]
-#        data = dbutil.get_user_data(username)
-#        if data:
-#            user_data.update(data)
-#    else:
-#        username = _make_username()
-#        session["user"] = username
-#        user_data = {"username": username}
-
     sort_order = form.get("sort_order")
     search_terms = form.get("msg_text")
     search_nick = form.get("nick")
@@ -90,8 +109,7 @@ def POST_search_results():
     start_date = form.get("start_date")
     end_date = form.get("end_date")
 
-    kwargs = utils.search_term_query(search_terms, "remark", start_date,
-            end_date)
+    kwargs = utils.search_term_query(search_terms, "remark", start_date, end_date)
     bqbm = kwargs["body"]["query"]["bool"]["must"]
     neg_bqbm = kwargs["body"]["query"]["bool"]["must_not"]
     bqbf = kwargs["body"]["query"]["bool"]["filter"]
@@ -122,49 +140,38 @@ def POST_search_results():
     g.hilite = hilite
     g.results = [hit["_source"] for hit in hits]
     g.num_results = len(g.results)
-#    g.offset = user_data.get("offset", 0)
     g.kwargs = kwargs
-
-#    dbutil.store_data(username, user_data)
-#    session["user"] = copy.deepcopy(user_data)
-    return render_template("irc_search_results.html",
-            make_clickable=make_clickable)
+    return render_template("irc_search_results.html", make_clickable=make_clickable)
 
 
 def earlier(channel, end, size):
-    return {"body": {
-                    "query": {
-                        "bool": {
-                            "filter": {
-                                "term": {"channel": channel}
-                            },
-                            "must": {
-                                "range" : {"posted" : {"lt": end}}
-                            },
-                        }
-                    }
-                },
-                "size": size,
-                "sort": ["posted:desc"]
+    return {
+        "body": {
+            "query": {
+                "bool": {
+                    "filter": {"term": {"channel.keyword": channel}},
+                    "must": {"range": {"posted": {"lt": end}}},
+                }
             }
+        },
+        "size": size,
+        "sort": ["posted:desc"],
+    }
 
 
 def later(channel, start, size):
-        return {"body": {
-                    "query": {
-                        "bool": {
-                            "filter": {
-                                "term": {"channel": channel}
-                            },
-                            "must": {
-                                "range" : {"posted" : {"gte": start}}
-                            },
-                        }
-                    }
-                },
-                "size": size,
-                "sort": ["posted:asc"]
+    return {
+        "body": {
+            "query": {
+                "bool": {
+                    "filter": {"term": {"channel.keyword": channel}},
+                    "must": {"range": {"posted": {"gte": start}}},
+                }
             }
+        },
+        "size": size,
+        "sort": ["posted:asc"],
+    }
 
 
 def _pick_color():

@@ -67,21 +67,22 @@ def runproc(cmd):
     return stdout_text, stderr_text
 
 
-def _parse_creds():
+def parse_creds():
     with open("/home/ed/projects/leafe/.dbcreds") as ff:
         lines = ff.read().splitlines()
     ret = {}
     for ln in lines:
         key, val = ln.split("=")
         ret[key] = val
-    return ret
+    return DotDict(ret)
 
 
-def connect():
+def connect(creds=None):
     cls = pymysql.cursors.DictCursor
-    creds = _parse_creds()
-    ret = pymysql.connect(host=HOST, user=creds["DB_USERNAME"],
-            passwd=creds["DB_PWD"], db=creds["DB_NAME"], charset="utf8",
+    # If credentials aren't supplied, use the ones in .dbcreds
+    creds = creds or parse_creds()
+    ret = pymysql.connect(host=creds.get("host") or HOST, user=creds["username"],
+            passwd=creds["password"], db=creds["dbname"], charset="utf8",
             cursorclass=cls)
     return ret
 

@@ -9,6 +9,7 @@ import downloads
 import drstandup
 import galleries
 import ircsearch
+import twitterthread
 
 app = Flask(__name__)
 app.secret_key = b"C\xba\x87\xbf\xca'i\xbf\xab\xc4\x9b\x97\xdc\xef\xb0\x9a\xed"
@@ -166,6 +167,16 @@ def timeline_middle(channel, start, end=None):
 @app.route("/timeline/<channel>/<start>/<end>")
 def timeline(channel, start, end=None):
     return ircsearch.show_timeline(channel, start, end, False)
+
+
+#### Twitter threading routes ####
+@app.route("/twitterthread", methods=["GET"])
+def get_twitterthread():
+    return twitterthread.show_form()
+
+@app.route("/twitter_format", methods=["POST"])
+def make_twitter_thread():
+    return twitterthread.make_thread()
 
 
 #### Art / photo routes ####

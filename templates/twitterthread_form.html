@@ -1,0 +1,267 @@
+{% extends "master.html" %}
+{% block title %}Create a Twitter Thread{% endblock %}
+
+{% block extra_JS %}
+  document.addEventListener("DOMContentLoaded", function() {
+    var elems = document.querySelectorAll("select");
+    var instances = M.FormSelect.init(elems, options={});
+    var elems = document.querySelectorAll('.tooltipped');
+    var instances = M.Tooltip.init(elems, options);
+    var elems = document.querySelectorAll('.tap-target');
+    var instances = M.TapTarget.init(elems, options);
+
+	// Get the input textarea
+	let inputSource = document.getElementById("tweetSource");
+
+	// Init a timeout variable to be used below
+	let timeout = null;
+
+	// Listen for keystroke events
+	inputSource.addEventListener("keyup", function (e) {
+		// Clear the timeout if it has already been set.
+		// This will prevent the previous task from executing
+		// if it has been less than <MILLISECONDS>
+		clearTimeout(timeout);
+
+		// Make a new timeout set to go off in 400ms (0.4 second)
+		timeout = setTimeout(function () {
+			updateThread();
+		}, 400);
+	});
+
+  })
+
+  const copyToClipboard = str => {
+    const el = document.createElement('textarea');  // Create a <textarea> element
+    el.value = str;                                 // Set its value to the string that you want copied
+    el.setAttribute('readonly', '');                // Make it readonly to be tamper-proof
+    el.style.position = 'absolute';                 
+    el.style.left = '-9999px';                      // Move outside the screen to make it invisible
+    document.body.appendChild(el);                  // Append the <textarea> element to the HTML document
+    const selected =            
+      document.getSelection().rangeCount > 0        // Check if there is any content selected previously
+        ? document.getSelection().getRangeAt(0)     // Store selection if found
+        : false;                                    // Mark as false to know no selection existed before
+    el.select();                                    // Select the <textarea> content
+    document.execCommand('copy');                   // Copy - only works as a result of a user action (e.g. click events)
+    document.body.removeChild(el);                  // Remove the <textarea> element
+    if (selected) {                                 // If a selection existed before copying
+      document.getSelection().removeAllRanges();    // Unselect everything on the HTML document
+      document.getSelection().addRange(selected);   // Restore the original selection
+    }
+  };
+
+  function getRadioSelection(elems) {
+    if (elems === undefined) {
+        return null;
+    }
+    for (i = 0; i < elems.length; i++) {
+      if (elems[i].checked) {
+        return elems[i].value;
+      }
+    }
+    return null;
+  }
+
+  function getSelectValue(elems) {
+    if (elems === undefined) {
+        return null;
+    }
+    var elem = elems[0];
+    for (i = 0; i < elem.length; i++) {
+      if (elem[i].selected) {
+        return elem[i].value;
+      }
+    }
+    return null;
+  }
+
+  function updateThread() {
+    // create an XHR object
+    const xhr = new XMLHttpRequest();
+
+    // listen for `onload` event
+    xhr.onload = () => {
+        // process response
+        if (xhr.status == 200) {
+            // parse JSON data
+            var response = JSON.parse(xhr.response);
+            setThreadElements(response);
+        } else {
+            console.error("Error!");
+        }
+    };
+
+    // create a `POST` request
+    var source = document.getElementById("tweetSource").value;
+    var number_style = getRadioSelection(document.getElementsByName("number_style"));
+    var break_at = getSelectValue(document.getElementsByName("break_at"));
+    var end_text = document.getElementById("end_text").value;
+    var params = "source=" + source + "&number_style=" + number_style + "&break_at=" + break_at + "&end_text=" + end_text;
+    var url = document.location.origin + "/twitter_format";
+    xhr.open("POST",url);
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.setRequestHeader("Accept", "application/json");
+
+    // send request
+    xhr.send(params);
+  }
+
+  function copy_text(num){
+    var text_elem = document.getElementById("t"+num);
+    copyToClipboard(text_elem.innerText);
+  }
+
+  var tweetTemplate = `
+        <div class="col s9">
+          <div class="card horizontal grey lighten-4">
+              <div class="card-content" id="t@NUM@">
+              </div>
+              <div class="card-action">
+                <button onclick="copy_text(@NUM@)">Copy</button>
+                <div id="d@NUM@" style="padding-top: 3em">
+                </div>
+              </div>
+          </div>
+        </div>
+  `
+
+  function adjustLengthForURL(txt) {
+    // URLs in Twitter all count as 23 characters long.
+    var slug = "12345678901234567890123";
+    var replaced = txt.replace(/https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,4}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)[^ \.]\b\/?/g, slug);
+    return replaced.length;
+  }
+
+  function setThreadElements(resp) {
+    var numEntries = resp.length;
+    var elemDiv = document.getElementById("threadElements");
+    var currElems = elemDiv.children;
+    var numElems = currElems.length;
+    if (numEntries > numElems) {
+      addElems(elemDiv, numEntries, numElems); 
+    } else {
+      removeElems(elemDiv, numEntries, currElems); 
+    }
+
+//    console.log(resp[0].length);
+//    debugger;
+    for (i = 0; i < numEntries; i++){
+      var elem = document.getElementById("t"+i);
+      elem.innerText = resp[i];
+      elem = document.getElementById("d"+i);
+      elem.innerHTML = "Length: <b>" + adjustLengthForURL(resp[i]) + "</b>";
+    }
+  }
+
+  function addElems(elemDiv, numEntries, numElems) {
+    var toAdd = numEntries - numElems;
+    for (i = numElems; i < numEntries; i++) {
+      var newElement = document.createElement("div");
+    //  newElement.setAttribute("id", "d"+i);
+      var newHTML = tweetTemplate.replace(/@NUM@/g, i);
+      newElement.innerHTML = newHTML;
+      elemDiv.appendChild(newElement);
+    }
+  }
+
+  function removeElems(elemDiv, numEntries, currElems) {
+    for (i = currElems.length; i > numEntries; i--) {
+      elemDiv.removeChild(currElems[i-1])
+    }
+  }
+
+{% endblock%}
+
+{% block extra_css %}
+<style>
+</style>
+{% endblock %}
+
+  {% block content %}
+
+  <h4>Create a Twitter Thread</h4>
+  <h6>This is still being developed, so things might change over time.</h6>
+
+  <div class="row">
+  </div>
+  <div class="row">
+    <!-- left side - form -->
+    <div class="col s6">
+      <form method="post" id="format" name="format" action="/twitter_format">
+        <div class="row">
+          <div class="input-field col s10" style="text-align: left">
+
+            <textarea id="tweetSource" name="tweetSource" class="materialize-textarea" rows=5></textarea>
+            <label for="textarea1">
+              <a class="tooltipped" data-tooltip="Enter the text that will make up your thread. You may paste it in all at once, or type it manually.<br />Newlines and multiple spaces are compacted into a single space.">
+			    <i class="material-icons">help</i>
+              </a>
+              Enter your source text
+            </label>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col s4">
+            <p>
+              <a class="tooltipped" data-tooltip="When there are multiple tweets needed, this controls how each tweet's position in the thread is labeled.<br />Click on each type to see how it affects the tweets on the right side of the page.">
+			    <i class="material-icons">help</i>
+              </a>
+              Thread Numbering Style
+            </p>
+            <p>
+              <label>
+                <input class="with-gap" id="sne" value="sne" name="number_style" type="radio" onclick="updateThread()" checked />
+                <span>/1 (at end)</span>
+              </label>
+            </p>
+            <p>
+              <label>
+                <input class="with-gap" id="nsne" value="nsne" name="number_style" type="radio" onclick="updateThread()" />
+                <span>1/N (at end)</span>
+              </label>
+            </p>
+            <p>
+              <label>
+                <input class="with-gap" id="nsb" value="nsb" name="number_style" type="radio" onclick="updateThread()" />
+                <span>1/ (at beginning)</span>
+              </label>
+            </p>
+            <p>
+              <label>
+                <input class="with-gap" id="nsnb" value="nsnb" name="number_style" type="radio" onclick="updateThread()" />
+                <span>1/N (at beginning)</span>
+              </label>
+            </p>
+          </div>
+
+          <div class="col s7">
+            <label for="break_at">
+              <a class="tooltipped" data-tooltip="This controls how the thread is broken into individual tweets. There are two options:<br />1) Sentence: each tweet will only break at the end of a sentence.<br />2) All Break Characters: in addition to sentences, tweets can be broken at punctuation like commas, semi-colons, and colons.<br />If you have an extremely long sentence with no breaks that would fit in a single tweet, it will be broken at the nearest word boundary that can fit.">
+			    <i class="material-icons">help</i>
+              </a>
+            Break by:
+            </label>
+            <div class="input-field">
+              <select id="break_at" name="break_at" onchange="updateThread()">
+                <option value="sentence" selected>Sentence ( <b>. ! ?</b> )</option>
+                <option value="all_punc">All Break Characters ( <b>. ! ? , ; :</b> )</option>
+              </select>
+            </div>
+            <label for="end_text">Text for last (such as "/end", or blank if you want the number of the last tweet):</label>
+            <div class="input-field">
+              <input id="end_text" name="end_text" value="end" onkeyup="updateThread()"></input>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- results column -->
+    <div class="col s6" id="threadElements">
+    </div>
+  </div>
+
+  {% endblock %}
+

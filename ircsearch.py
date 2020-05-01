@@ -149,7 +149,7 @@ def earlier(channel, end, size):
         "body": {
             "query": {
                 "bool": {
-                    "filter": {"term": {"channel.keyword": channel}},
+                    "filter": {"term": {"channel": channel}},
                     "must": {"range": {"posted": {"lt": end}}},
                 }
             }
@@ -164,7 +164,7 @@ def later(channel, start, size):
         "body": {
             "query": {
                 "bool": {
-                    "filter": {"term": {"channel.keyword": channel}},
+                    "filter": {"term": {"channel": channel}},
                     "must": {"range": {"posted": {"gte": start}}},
                 }
             }

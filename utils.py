@@ -218,20 +218,6 @@ def get_photos_in_gallery(gallery_name):
     return photos
 
 
-def get_client_RAX():
-    pyrax.set_setting("identity_type", "rackspace")
-    ctx = pyrax.create_context()
-    credfile = os.path.join(BASE_DIR, ".raxcreds")
-    ctx.set_credential_file(credfile, authenticate=True)
-    client = ctx.DFW.object_store.client
-    return client
-
-
-def get_gallery_container_RAX():
-    clt = get_client()
-    return clt.get_container("galleries")
-
-
 def download(remote_url, folder, fname):
     """Download the file at the remote address, and write it to the specified
     folder

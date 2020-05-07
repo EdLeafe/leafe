@@ -3,7 +3,6 @@ from functools import wraps, update_wrapper
 import logging
 import math
 import os
-import pyrax
 import re
 from subprocess import Popen, PIPE
 import time
@@ -173,6 +172,32 @@ def get_client():
     return bucket
 
 
+def upload_to_DO(fpath, folder=None, public=False):
+    """Uploads the specified file to the default DigitalOcean space. If a
+    folder is specified, that will be used as a prefix for the remote file.
+    Example:
+    
+        fpath = "/home/ed/photos/test_image.jpg"
+        folder = None
+        -> will create the key 'test_image.jpg'
+
+        fpath = "/home/ed/photos/test_image.jpg"
+        folder = "Family Photos/June"
+        -> will create the key 'Family Photos/June/test_image.jpg'
+
+    If the parameter 'public' is True, the remote file will be made publicly available.
+    """
+    folder = folder or ""
+    fname = os.path.basename(fpath)
+    remote_path = os.path.join(folder, fname)
+    clt = get_client()
+    remote_file = clt.new_key(remote_path)
+    with open(fpath, "rb") as file_to_upload:
+        remote_file.set_contents_from_file(file_to_upload)
+    if public:
+        remote_file.make_public()
+
+
 def get_gallery_names():
     clt = get_client()
     prefix = "galleries/"
@@ -191,8 +216,6 @@ def get_photos_in_gallery(gallery_name):
     names = (itm.split("galleries/")[-1] for itm in full_names)
     photos = [itm for itm in names if itm != "{}/".format(gallery_name)]
     return photos
-
-
 
 
 def get_client_RAX():
@@ -221,9 +244,9 @@ def download(remote_url, folder, fname):
 
 def _parse_search_terms(term_string):
     phrases = PHRASE_PAT.findall(term_string)
-#    debug("Phrases:", phrases)
+#    logit("Phrases:", phrases)
     terms = PHRASE_PAT.split(term_string)
-#    debug("Terms:", terms)
+#    logit("Terms:", terms)
     for phrase in phrases:
         terms.remove(phrase)
     words_required = []
@@ -233,10 +256,10 @@ def _parse_search_terms(term_string):
     for phrase in phrases:
         phrase = phrase.strip()
         if phrase.startswith("-"):
-#            debug("Forbidden phrase:", phrase)
+#            logit("Forbidden phrase:", phrase)
             phrases_forbidden.append(phrase[1:])
         else:
-#            debug("Allowed phrase:", phrase)
+#            logit("Allowed phrase:", phrase)
             phrases_required.append(phrase)
     for term in terms:
         # A 'term' can consist of multiple words.
@@ -244,10 +267,10 @@ def _parse_search_terms(term_string):
         for term_word in term_words:
             term_word = term_word.strip()
             if term_word.startswith("-"):
-#                debug("Forbidden term:", term_word)
+#                logit("Forbidden term:", term_word)
                 words_forbidden.append(term_word[1:])
             else:
-#                debug("Allowed term:", term_word)
+#                logit("Allowed term:", term_word)
                 words_required.append(term_word)
     # We have the values in lists, but we need simple strings
     return (" ".join(words_required), " ".join(words_forbidden),

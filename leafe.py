@@ -116,6 +116,7 @@ def achives_get():
 
 
 #### Download routes ####
+@app.route("/dls")
 @app.route("/downloads")
 def dls():
     return downloads.main_page()

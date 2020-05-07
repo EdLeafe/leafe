@@ -133,19 +133,23 @@
     return replaced.length;
   }
 
+  function addAllElems(elemDiv, num) {
+    for (i = 0; i < num; i++) {
+      var newElement = document.createElement("div");
+      var newHTML = tweetTemplate.replace(/@NUM@/g, i);
+      newElement.innerHTML = newHTML;
+      elemDiv.appendChild(newElement);
+    }
+  }
+  
   function setThreadElements(resp) {
+debugger;
     var numEntries = resp.length;
     var elemDiv = document.getElementById("threadElements");
-    var currElems = elemDiv.children;
-    var numElems = currElems.length;
-    if (numEntries > numElems) {
-      addElems(elemDiv, numEntries, numElems); 
-    } else {
-      removeElems(elemDiv, numEntries, currElems); 
-    }
-
-//    console.log(resp[0].length);
-//    debugger;
+    // Remove all the thread elements
+    elemDiv.innerHTML = "";
+    // Create them anew
+    addAllElems(elemDiv, numEntries);
     for (i = 0; i < numEntries; i++){
       var elem = document.getElementById("t"+i);
       elem.innerText = resp[i];

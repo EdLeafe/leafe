@@ -16,7 +16,8 @@ import utils
 UPLOAD_DIR = "/var/www/uploads"
 DOWNLOAD_PATH = "download_file"
 DLBASE = f"https://leafe.com/{DOWNLOAD_PATH}"
-CDNBASE = "https://baba3e9f50e49daa7c3f-032440835eb7c07735745c77228f7f03.ssl.cf1.rackcdn.com"
+#CDNBASE = "https://baba3e9f50e49daa7c3f-032440835eb7c07735745c77228f7f03.ssl.cf1.rackcdn.com"
+CDNBASE = "https://com-leafe-images.nyc3.cdn.digitaloceanspaces.com/ftp"
 LICENSES = {"f": "Freeware ", "s": "Shareware ", "c": "Commercial ",
         "d": "Demoware ", "g": "GPL Software ", "l": "LGPL Software ",
         "m": "Creative Commons License ", "o": "Other Open Source License "}

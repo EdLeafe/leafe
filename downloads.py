@@ -99,6 +99,7 @@ def _run_query(term=None):
 
 
 def upload():
+    g.message = ""
     return render_template("upload.html")
 
 
@@ -158,10 +159,6 @@ Date: %s
     smtp = smtplib.SMTP("mail.leafe.com")
     smtp.sendmail("files@leafe.com", "ed@leafe.com", msg)
 
-    return "email sent"
-
-    c.filename = newfile.filename
-    c.filesize = fsize
-    c.email = dl.cauthoremail
+    g.message = "Your file has been uploaded."
     return render("upload.html")
 

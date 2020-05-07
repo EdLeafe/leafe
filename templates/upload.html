@@ -41,13 +41,26 @@ form_validate = function(frm) {
 {% block extra_CSS %}
 <style>
 .input-field {
-    padding-bottom: 20px;
+  padding-bottom: 20px;
+}
+.message {
+  color: #995555;
+  padding-top: 1em;
 }
 </style>
 {% endblock %}
 
     {% block content %}
-      <form  onsubmit="return form_validate(this)" method="post" id="upload_form" name="upload_form" action="/upload_file" enctype="multipart/form-data">
+      <form  onsubmit="return form_validate(this)" method="post"
+            id="upload_form" name="upload_form" action="/upload_file" enctype="multipart/form-data">
+        {% if g.message %}
+        <div class="row">
+          <div class="row">
+            <h3 class="message">{{ g.message }}</h3>
+          </div>
+        </div>
+        {% endif %}
+
         <div class="row">
           <div class="row">
             <h4>Upload a File</h4>

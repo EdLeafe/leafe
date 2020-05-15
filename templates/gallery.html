@@ -54,9 +54,6 @@
     var num_images = images.length ;
 
     function navigate(move) {
-       if (move === 27) {
-         window.location.assign("https://leafe.com/");
-       }
        var obj = document.getElementById("main");
        var curr_img_src = obj.src
        var curr_img_loc = curr_img_src.split(":").slice(-1)[0]
@@ -70,12 +67,15 @@
     }
 
     function reactKey(evt) {
-      if(evt.keyCode== 37) {
-        navigate(-1);   
+      if (evt.keyCode === 27) {
+        console.log("before:" + window.location);
+        setTimeout(function () { document.location.href = "/art/galleries" }, 500);
+        console.log("after:" + window.location);
+        return false;
       } else if(evt.keyCode== 39) {
         navigate(1);   
-      } else if(evt.keyCode== 27) {
-        navigate(27);   
+      } else if (evt.keyCode== 37) {
+        navigate(-1);   
       }
     }
 
@@ -126,7 +126,7 @@
         if (isMobile) {
             msg = "Swipe left or right to navigate";
         } else {
-            msg = "Use the left and right arrow keys to navigate";
+        msg = "Use the left and right arrow keys to navigate.\r\nPress 'Escape' to return";
         }
         alert(msg);
     }, false)

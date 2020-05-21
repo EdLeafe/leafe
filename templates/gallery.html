@@ -1,138 +1,153 @@
 {% extends "gallery_master.html" %}
+
+{% block title %}{{ g.gallery_name }}{% endblock %}
+
+{% block extra_head %}
+<!-- Core CSS file -->
+<link rel="stylesheet" href="/static/css/photoswipe.css"> 
+
+<!-- Skin CSS file (styling of UI - buttons, caption, etc.)
+     In the folder of skin CSS file there are also:
+     - .png and .svg icons sprite, 
+     - preloader.gif (for browsers that do not support CSS animations) -->
+<link rel="stylesheet" href="/static/default-skin/default-skin.css"> 
+
+<!-- Core JS file -->
+<script src="/static/js/photoswipe.min.js"></script> 
+
+<!-- UI JS file -->
+<script src="/static/js/photoswipe-ui-default.min.js"></script> 
+
+{% endblock %}
+
 {% block extra_CSS %}
-  <style>
-    .container {
-      width: 100vw;
-      height: 100vh;
-      margin: auto;
-      object-fit: contain;
-    }
-    .container img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-      display: block;
-      margin: auto;
-    }
-    .navarrow {
-      display: block;
-      width: 2em;
-      height: 2em;
-      background-color: transparent;
-      position: absolute;
-      top: 50%;
-      left: 10;
-      z-index: -10;
-    }
-    .navarrow:hover {
-      border: 3px solid red;
-    }
-    .helptext {
-      font-style: italic;
-      font-size: 75%;
-      color: white;
-      text-align: center;
-    }
-    body { 
-      background: #000000; 
-    }
-  </style>
+<style>
+h3.heading {
+  text-align: center;
+  margin: 0px 0px 40px 0px;
+  color: white;
+}
+body {
+  background-color: black;
+}
+</style>
 {% endblock %}
 
 {% block extra_JS %}
-    document.addEventListener('DOMContentLoaded', function() {
-      var elems = document.querySelectorAll('.materialboxed');
-      var instances = M.Materialbox.init(elems, options={});
-    });
 
-    document.onkeydown= function(key){ reactKey(key); }
-    document.onmousedown= function(foo){ reactMouse(foo); }
-    var images = []
-    {% for photo in g.photos %}
-    images.push("{{ photo }}")
+//  window.addEventListener('load', function(){ // on page load
+  function loadpswp(idx) {
+    var pswpElement = document.querySelectorAll('.pswp')[0];
+    
+    // build items array
+    var items = [
+    {% for photo, metadata in g.photos.items() %}
+      {
+      src: "{{ photo }}",
+      w: {{ metadata.get("width") }},
+      h: {{ metadata.get("height") }}
+      },
     {% endfor %}
-    var num_images = images.length ;
+    ];
+    
+    // define options (if needed)
+    var options = {
+      // optionName: 'option value'
+      // for example:
+      index: idx
+    };
+    
+    // Initializes and opens PhotoSwipe
+    var gallery = new PhotoSwipe( pswpElement, PhotoSwipeUI_Default, items, options);
+    gallery.init();
+  }
+//  })
 
-    function navigate(move) {
-       var obj = document.getElementById("main");
-       var curr_img_src = obj.src
-       var curr_img_loc = curr_img_src.split(":").slice(-1)[0]
-       var curr_pos = images.indexOf(curr_img_src);
-       var new_pos = curr_pos + move;
-       if (new_pos >=0 && new_pos < num_images) {
-         obj.src = images[new_pos];
-       } else {
-        obj.src = images[num_images - 1];
-       }
-    }
-
-    function reactKey(evt) {
-      if (evt.keyCode === 27) {
-        console.log("before:" + window.location);
-        setTimeout(function () { document.location.href = "/art/galleries" }, 500);
-        console.log("after:" + window.location);
-        return false;
-      } else if(evt.keyCode== 39) {
-        navigate(1);   
-      } else if (evt.keyCode== 37) {
-        navigate(-1);   
-      }
-    }
-
-    function reactMouse(evt) {
-      var locX = evt.x ;
-      var imgWidth = document.getElementById("main").width ;
-      var leftQ = imgWidth * .25;
-      var rightQ = imgWidth * .75 ;
-      if (locX < leftQ) {
-        navigate(-1);   
-      } else if (locX > rightQ) {
-        navigate(1);   
-      }
-    }
-
-    function getAttrs(obj) {
-      var ret = [];
-      for (var att in obj) {
-        ret.push(att + " ") ;
-      }
-      return ret ;
-    }
-
-    var touchXstart = -1;
-    var movement = 0;
-    window.addEventListener('load', function(){ // on page load
-        document.body.addEventListener('touchstart', function(e){
-          touchXstart = e.changedTouches[0].pageX;
-        }, false)
-        document.body.addEventListener('touchend', function(e){
-          var endX = e.changedTouches[0].pageX;
-          var diff = Math.abs(endX - touchXstart);
-          if (diff < 100) {
-            movement = 0;
-          }
-          else if (endX > touchXstart) {
-            movement = -1;
-          } else if (endX < touchXstart){
-            movement = 1
-          }
-          if (movement !== 0) {
-              navigate(movement);
-          }
-          touchXstart = -1;
-          movement = 0;
-        }, false)
-        var isMobile = 'ontouchstart' in document.documentElement;
-        if (isMobile) {
-            msg = "Swipe left or right to navigate";
-        } else {
-        msg = "Use the left and right arrow keys to navigate.\r\nPress 'Escape' to return";
-        }
-        alert(msg);
-    }, false)
 {% endblock %}
-{% block title %}{{ g.gallery_name }}{% endblock %}
+
 
   {% block content %}
-  <img id="main" src="{{ g.photos[0] }}" />
-  {% endblock %}
+
+  <div style="margin: 50px 0px 20px 25px;">
+    <a href="/art/galleries">Return to Gallery Listing</a>
+  </div>
+
+  <h3 class="heading"> Gallery: {{ g.gallery_name }}</h3>
+  <div style="margin: auto; width: 95%;">
+  {% set ns = namespace(row_count=0) %}
+  {% for photo in g.photos %}
+      <img src="{{ photo }}" height=150 width=150 onclick="loadpswp({{ ns.row_count }})" />
+  {% set ns.row_count = ns.row_count + 1 %}
+  {% endfor %}
+  </div>
+  <div style="margin: 50px 0px 20px 25px;">
+    <a href="/art/galleries">Return to Gallery Listing</a>
+  </div>
+  
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+  <!-- Background of PhotoSwipe. 
+     It's a separate element as animating opacity is faster than rgba(). -->
+  <div class="pswp__bg"></div>
+
+  <!-- Slides wrapper with overflow:hidden. -->
+  <div class="pswp__scroll-wrap">
+
+    <!-- Container that holds slides. 
+      PhotoSwipe keeps only 3 of them in the DOM to save memory.
+      Don't modify these 3 pswp__item elements, data is added later on. -->
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+
+    <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+    <div class="pswp__ui pswp__ui--hidden">
+
+      <div class="pswp__top-bar">
+
+        <!--  Controls are self-explanatory. Order can be changed. -->
+
+        <div class="pswp__counter"></div>
+
+        <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+        <button class="pswp__button pswp__button--share" title="Share"></button>
+
+        <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+        <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+        <!-- Preloader demo https://codepen.io/dimsemenov/pen/yyBWoR -->
+        <!-- element will get class pswp__preloader--active when preloader is running -->
+        <div class="pswp__preloader">
+          <div class="pswp__preloader__icn">
+            <div class="pswp__preloader__cut">
+            <div class="pswp__preloader__donut"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+        <div class="pswp__share-tooltip"></div> 
+      </div>
+
+      <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+      </button>
+
+      <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+      </button>
+
+      <div class="pswp__caption">
+        <div class="pswp__caption__center"></div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}
+

@@ -1,0 +1,11 @@
+black
+boto
+cryptography
+elasticsearch
+Flask
+Flask-Session
+keyring
+mock
+py
+PyMySQL
+six

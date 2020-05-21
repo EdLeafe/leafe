@@ -7,3 +7,7 @@ def about():
 
 def design():
     return render_template("art_design.html")
+
+
+def photo_principles():
+    return render_template("art_photo_principles.html")

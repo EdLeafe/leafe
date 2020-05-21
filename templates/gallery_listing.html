@@ -1,5 +1,22 @@
 {% extends "master.html" %}
 {% block title %}Photo Gallery Listing{% endblock %}
+{% block extra_head %}
+<!-- Core CSS file -->
+<link rel="stylesheet" href="/static/css/photoswipe.css"> 
+
+<!-- Skin CSS file (styling of UI - buttons, caption, etc.)
+     In the folder of skin CSS file there are also:
+     - .png and .svg icons sprite, 
+     - preloader.gif (for browsers that do not support CSS animations) -->
+<link rel="stylesheet" href="/static/default-skin/default-skin.css"> 
+
+<!-- Core JS file -->
+<script src="/static/js/photoswipe.min.js"></script> 
+
+<!-- UI JS file -->
+<script src="/static/js/photoswipe-ui-default.min.js"></script> 
+{% endblock %}
+
   {% block content %}
 
   <div class="row">
@@ -9,23 +26,12 @@
           <span class="card-title">Gallery Listing</span>
           <ul class="listing">
           {% for gal in g.gallery_names %}
-            <li><a href="/art/galleries/{{ gal }}" target="_new">{{ gal }}</a></li>
+            <li><a href="/art/galleries/{{ gal }}">{{ gal }}</a></li>
           {% endfor %}
           </ul>
         </div>
       </div>
     </div>
   </div>
-
-<!--
-  <h4>Gallery Listing</h4>
-  <div class="row">
-    <ul class="listing">
-    {% for gal in g.gallery_names %}
-      <li><a href="/art/galleries/{{ gal }}" target="_new">{{ gal }}</a></li>
-    {% endfor %}
-    </ul>
-  </div>
--->
 
   {% endblock %}

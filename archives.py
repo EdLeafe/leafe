@@ -225,7 +225,7 @@ def _regexp_casing(txt):
 def _get_message(msg_num):
     msg_num = int(msg_num)
     kwargs = {"body": {"query": {"match": {"msg_num": msg_num}}}}
-    resp = es_client.search("email", **kwargs)
+    resp = es_client.search(index="email", **kwargs)
     allrecs = _extract_records(resp, translate_to_db=False)
     if not allrecs:
         abort(404, "No message with id=%s exists" % msg_num)
@@ -246,7 +246,7 @@ def show_full_thread(msg_num):
             "sort": {"posted": "asc"},
         }
     }
-    resp = es_client.search("email", **kwargs)
+    resp = es_client.search(index="email", **kwargs)
     allrecs = _extract_records(resp, translate_to_db=False)
     if not allrecs:
         abort(404, "No message with id=%s exists" % msg_num)
@@ -261,7 +261,7 @@ def show_full_thread(msg_num):
 
 def show_message_by_msgid(msg_id):
     kwargs = {"body": {"query": {"match": {"message_id": msg_id}}}}
-    resp = es_client.search("email", **kwargs)
+    resp = es_client.search(index="email", **kwargs)
     allrecs = _extract_records(resp, translate_to_db=False)
     if not allrecs:
         abort(404, "No message with id=%s exists" % msg_id)
@@ -322,7 +322,7 @@ def archives_results_GET():
     g.offset = (g.page - 1) * g.batch_size
     # Make sure we don't exceed elasticsearch's limits
     g.kwargs["from_"] = min(g.offset, MAX_RECORDS - g.batch_size)
-    resp = es_client.search("email", **g.kwargs)
+    resp = es_client.search(index="email", **g.kwargs)
     g.results = _extract_records(resp, translate_to_db=False)
     g.pager_text = _pager_text()
     g.session = session
@@ -395,7 +395,7 @@ def archives_results_POST():
     kwargs["size"] = 10000
     kwargs["_source"] = ["msg_num"]
     startTime = time.time()
-    resp = es_client.search("email", **kwargs)
+    resp = es_client.search(index="email", **kwargs)
     session["elapsed"] = g.elapsed = "%.4f" % (time.time() - startTime)
     g.full_results = [r["_source"]["msg_num"] for r in resp["hits"]["hits"]]
     session["full_results"] = g.full_results
@@ -412,7 +412,7 @@ def archives_results_POST():
 
     session["batch_size"] = batch_size
     session["kwargs"] = g.kwargs = kwargs
-    resp = es_client.search("email", **kwargs)
+    resp = es_client.search(index="email", **kwargs)
     total = "{:,}".format(resp["hits"]["total"]["value"])
     g.results = _extract_records(resp, translate_to_db=False)
     g.session = session

@@ -1,4 +1,6 @@
 import datetime
+import os
+import random
 
 from flask import Flask, abort, g, render_template, request, session, url_for
 from flask_session import Session
@@ -11,6 +13,9 @@ import galleries
 import ircsearch
 import twitterthread
 
+
+INDEX_IMAGE_PATH = "static/images/index/"
+
 app = Flask(__name__)
 app.secret_key = b"C\xba\x87\xbf\xca'i\xbf\xab\xc4\x9b\x97\xdc\xef\xb0\x9a\xed"
 app.url_map.strict_slashes = False
@@ -22,11 +27,19 @@ app.config["SESSION_TYPE"] = "filesystem"
 app.config["PERMANENT_SESSION_LIFETIME"] = datetime.timedelta(hours=12)
 Session(app)
 
+
+def _select_images():
+    pth = os.path.join(os.getcwd(), INDEX_IMAGE_PATH)
+    images = os.listdir(pth)
+    return random.sample(images, 2)
+
+
 #### Basic routes ####
 @app.route("/")
 def index():
     g.timenow = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
     g.param_str = "%s" % dir(request)
+    g.images = _select_images()
     return render_template("index.html")
 
 
@@ -189,6 +202,11 @@ def get_art():
 @app.route("/art/design")
 def get_art_design():
     return art.design()
+
+
+@app.route("/art/photo_principles")
+def get_photo_principles():
+    return art.photo_principles()
 
 
 @app.route("/art/galleries")

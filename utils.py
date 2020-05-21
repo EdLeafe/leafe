@@ -3,6 +3,7 @@ from functools import wraps, update_wrapper
 import logging
 import math
 import os
+import random
 import re
 from subprocess import Popen, PIPE
 import time
@@ -212,10 +213,12 @@ def get_photos_in_gallery(gallery_name):
     clt = get_client()
     prefix = "galleries/{}/".format(gallery_name)
     all_photos = clt.list(prefix=prefix)
-    full_names = (itm.name for itm in all_photos)
-    names = (itm.split("galleries/")[-1] for itm in full_names)
-    photos = [itm for itm in names if itm != "{}/".format(gallery_name)]
-    return photos
+    photos_with_meta = {itm.name.split("galleries/")[-1]: clt.get_key(itm).metadata for itm in
+            all_photos}
+    photo_keys = list(photos_with_meta.keys())
+    random.shuffle(photo_keys)
+    shuffled_photos = {pk: photos_with_meta.get(pk) for pk in photo_keys if not pk.endswith("/")}
+    return shuffled_photos
 
 
 def download(remote_url, folder, fname):

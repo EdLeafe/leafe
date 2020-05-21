@@ -26,6 +26,9 @@
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='maple_leaf_tiny.png') }}">
 
+  {% block extra_head %}
+  {% endblock %}
+
   <style>
     li.flash{
       padding: 20px;
@@ -75,9 +78,9 @@
   {% endblock %}
 
     <div class="container">
+    </div>
     {% block content %}
     {% endblock %}
-    </div>
 
   </div>
 </body>

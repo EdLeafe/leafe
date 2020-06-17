@@ -1,7 +1,7 @@
 import json
 import re
 
-from flask import abort, g, render_template, request, session
+from flask import g, render_template, request
 
 import threadize
 

@@ -60,7 +60,7 @@ def _make_username():
 
 def _get_channels():
     resp = es_client.search(
-        "irclog",
+        index=INDEX,
         body={"aggs": {"channels": {"terms": {"field": "channel", "size": 1000}}}},
         size=0,
     )
@@ -123,7 +123,7 @@ def POST_search_results():
     kwargs["size"] = 10000
 
     startTime = time.time()
-    resp = es_client.search(INDEX, **kwargs)
+    resp = es_client.search(index=INDEX, **kwargs)
     g.elapsed = "%.4f" % (time.time() - startTime)
     hits = resp["hits"]["hits"]
 
@@ -184,11 +184,11 @@ def show_timeline(channel, start, end, middle=False):
     """
     if middle:
         before = earlier(channel, start, 10)
-        resp = es_client.search("irclog", **before)
+        resp = es_client.search(index=INDEX, **before)
         hits_before = resp["hits"]["hits"]
         hits_before.reverse()
         after = later(channel, start, PER_PAGE - 10)
-        resp = es_client.search("irclog", **after)
+        resp = es_client.search(index=INDEX, **after)
         hits_after = resp["hits"]["hits"]
         hits = hits_before + hits_after
         g.rows = [hit["_source"] for hit in hits]
@@ -200,7 +200,7 @@ def show_timeline(channel, start, end, middle=False):
         else:
             adjective = "later"
             kwargs = later(channel, start, PER_PAGE)
-        resp = es_client.search("irclog", **kwargs)
+        resp = es_client.search(index=INDEX, **kwargs)
         hits = resp["hits"]["hits"]
         if not hits:
             abort(404, "There are no %s messages" % adjective)

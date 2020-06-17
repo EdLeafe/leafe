@@ -242,15 +242,20 @@ def tokenize(txt, break_style):
 def main():
     if len(sys.argv) < 2:
         fname = TEST_FILE
+        number_style = "sne"
+        break_at =  "sentence"
+        end_text = "/end"
     else:
         fname = sys.argv[1]
         if not os.path.exists(fname):
             raise IOError("The file '{}' does not exist".format(name))
+        number_style = sys.argv[2] if len(sys.argv) > 2 else "sne"
+        break_at = sys.argv[3] if len(sys.argv) > 3 else "sentence"
+        end_text = sys.argv[4] if len(sys.argv) > 4 else "/end"
     with open(fname) as ff:
         txt = ff.read()
     txt = remove_newlines(txt)
-    tokens = tokenize(txt, by_sentence=BREAK_ON_SENTENCE)
-    chunks = chunker(tokens)
+    chunks = make_thread(txt, number_style, break_at, end_text)
     for chunk in chunks:
         print(chunk)
 

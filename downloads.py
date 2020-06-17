@@ -9,7 +9,6 @@ import time
 
 from flask import abort, g, redirect, render_template, request, url_for
 
-import helpers as h
 import utils
 
 

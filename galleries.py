@@ -23,4 +23,4 @@ def show_gallery(gallery_name):
     g.photos = {six.ensure_text(os.path.join(DO_BASE, parse.quote(ph))): md
             for ph, md in all_photos.items()}
 #    random.shuffle(g.photos)
-    return render_template("gallery_new.html")
+    return render_template("gallery.html")

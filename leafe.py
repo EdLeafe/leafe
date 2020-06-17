@@ -101,6 +101,7 @@ def show_full_thread(msg_num, the_rest=None):
     return archives.show_full_thread(msg_num)
 
 
+@app.route("/archives/showMsg/<msg_num>", methods=["GET"])
 @app.route("/archives/msg/<msg_num>", methods=["GET"])
 def show_message(msg_num):
     return archives.show_message(msg_num)

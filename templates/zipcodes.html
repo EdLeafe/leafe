@@ -1,0 +1,115 @@
+{% extends "main.html" %}
+
+{% block extra_CSS %}
+  <style>
+    .errmsg{
+        font-size: 2rem;
+    }
+  </style>
+{% endblock %}
+
+{% block extra_JS %}
+{% endblock %}
+
+{% block title %}US Zipcodes{% endblock %}
+
+    {% block content %}
+
+    <h6>Use standard regex for wildcard searches</h6>
+    <form method="POST" action="/zipcodes" name="zipsearchform">
+      <div class="row">
+        <div class="col s2">
+          <div class="input-field">
+            <label for="zipcode">Zipcode</label>
+            <input type="text" id="zipcode" name="zipcode">
+          </div>
+        </div>
+
+        <div class="col s3">
+          <div class="input-field">
+            <label for="city">City</label>
+            <input type="text" id="city" name="city">
+          </div>
+        </div>
+
+        <div class="col s1">
+          <div class="input-field">
+            <label for="state">State</label>
+            <input type="text" id="state" name="state">
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col s3">
+        <button class="btn waves-effect waves-light" type="submit" name="action">Submit
+          <i class="material-icons right">send</i>
+        </button>
+        </div>
+      </div>
+    </form>
+
+    {% if g.show_results %}
+        {% if g.exception %}
+          <div class="row">
+              <span class="errmsg red-text text-accent-3">{{ g.exception }}</span>
+          </div>
+        {% else %}
+          {% if g.num_results == 0 %}
+            <div class="row">
+              <div class="col s9">
+                <h5>Your query did not return any results</h5>
+              </div>
+            </div>
+        
+            <div class="row">
+              <div class="col s12">Condition: <b>{{ g.query }}</b></div>
+            </div>
+        
+          {% else %}
+            <div class="row">
+              <div class="col s9">
+                  <h5>Your query returned {% if g.num_results == 100 %}at least {% endif %}<b>{{ g.num_results }}</b> match{{ "es" if g.num_results > 1 else "" }} in <b><i>{{ g.elapsed }} seconds</i></b></h5>
+              </div>
+            </div>
+        
+            <div class="row">
+              <div class="col s12">Condition: <b>{{ g.query }}</b></div>
+            </div>
+        
+            <div class="row">
+              <div class="col s9">
+                <table>
+                  <thead>
+                  <tr>
+                      <th class="zipcode">Zip Code</th>
+                      <th class="city">City</th>
+                      <th class="state">State</th>
+                      <th class="county">County</th>
+                      <th class="timezone">Timezone</th>
+                      <th class="population">Population (2015)</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                    {% set rows = g.results %}
+        
+                    {% for row in rows %}
+                    <tr>
+                      <td class="zipcode">{{ row["postal_code"] }}</td>
+                      <td class="city">{{ row["city"] }}</td>
+                      <td class="state">{{ row["state"] }}</td>
+                      <td class="county">{{ row["county"] }}</td>
+                      <td class="timezone">{{ row["timezone"] }}</td>
+                      <td class="population_2015">{{ row["population_2015"] }}</td>
+                  </tr>
+                  {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          {% endif %}
+      {% endif %}
+    {% endif %}
+
+
+    {% endblock %}

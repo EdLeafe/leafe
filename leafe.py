@@ -12,6 +12,7 @@ import drstandup
 import galleries
 import ircsearch
 import twitterthread
+import zipcodes
 
 
 INDEX_IMAGE_PATH = "static/images/index/"
@@ -223,6 +224,11 @@ def show_gallery(gallery):
 @app.route("/imgtest")
 def imgtest():
     return render_template("imgtest.html")
+
+
+@app.route("/zipcodes", methods=["GET", "POST"])
+def show_zip():
+    return zipcodes.show()
 
 
 #### DataRobot routes

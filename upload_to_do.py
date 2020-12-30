@@ -6,7 +6,7 @@ import boto
 PHOTO_DIR = "/home/ed/dls/photos/"
 
 def _user_creds():
-    with open("docreds.rc") as ff:
+    with open("/home/ed/docreds.rc") as ff:
         creds = ff.read()
     user_creds = {}
     for ln in creds.splitlines():

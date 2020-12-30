@@ -44,6 +44,7 @@ def _hilite_match(val, txt):
 def download_file(url, url2=None):
     passed_url = os.path.join(url, url2) if url2 else url
     full_url = os.path.join(CDNBASE, passed_url)
+    utils.logit("download_file returning full URL:", full_url)
     return redirect(full_url)
 
 

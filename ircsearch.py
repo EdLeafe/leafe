@@ -10,6 +10,7 @@ from elasticsearch import Elasticsearch
 from flask import abort, g, render_template, request, session
 
 import utils
+from utils import logit
 
 
 START_DATE = "2016-01-01"
@@ -59,9 +60,10 @@ def _make_username():
 
 
 def _get_channels():
+    logit("CHANNELS", {"aggs": {"channels": {"terms": {"field": "channel", "size": 1000}}}})
     resp = es_client.search(
         index=INDEX,
-        body={"aggs": {"channels": {"terms": {"field": "channel", "size": 1000}}}},
+        body={"aggs": {"channels": {"terms": {"field": "channel.keyword", "size": 1000}}}},
         size=0,
     )
     clist = resp.get("aggregations").get("channels").get("buckets")
@@ -79,6 +81,7 @@ def _get_sort_order(order_by):
 
 def show_search_form():
     g.channels = _get_channels()
+    logit("Got channels")
     g.startdate = START_DATE
     g.enddate = END_DATE
     return render_template("irc_search_form.html")
@@ -115,7 +118,7 @@ def POST_search_results():
     bqbf = kwargs["body"]["query"]["bool"]["filter"]
 
     if sel_channel:
-        bqbf.append({"term": {"channel": sel_channel}})
+        bqbf.append({"term": {"channel.keyword": sel_channel}})
     if search_nick:
         bqbf.append({"term": {"nick": search_nick}})
     if sort_order:
@@ -123,6 +126,8 @@ def POST_search_results():
     kwargs["size"] = 10000
 
     startTime = time.time()
+    logit("POST SEARCH KW", kwargs)
+    print("POST SEARCH KW", kwargs)
     resp = es_client.search(index=INDEX, **kwargs)
     g.elapsed = "%.4f" % (time.time() - startTime)
     hits = resp["hits"]["hits"]
@@ -145,32 +150,27 @@ def POST_search_results():
 
 
 def earlier(channel, end, size):
-    return {
-        "body": {
-            "query": {
-                "bool": {
-                    "filter": {"term": {"channel": channel}},
-                    "must": {"range": {"posted": {"lt": end}}},
-                }
-            }
-        },
-        "size": size,
-        "sort": ["posted:desc"],
-    }
+    return chan_range(channel, "lt", end, size, "desc")
 
 
 def later(channel, start, size):
+    return chan_range(channel, "gte", start, size, "asc")
+
+
+def chan_range(chan, op, tm, size, ordr):
     return {
         "body": {
             "query": {
                 "bool": {
-                    "filter": {"term": {"channel": channel}},
-                    "must": {"range": {"posted": {"gte": start}}},
+                    "filter": [
+                        {"term": {"channel.keyword": chan}},
+                        {"range": {"posted": {op: tm}}}
+                    ]
                 }
             }
         },
         "size": size,
-        "sort": ["posted:asc"],
+        "sort": ["posted:{}".format(ordr)],
     }
 
 
@@ -184,10 +184,12 @@ def show_timeline(channel, start, end, middle=False):
     """
     if middle:
         before = earlier(channel, start, 10)
+        logit("BEFORE", before)
         resp = es_client.search(index=INDEX, **before)
         hits_before = resp["hits"]["hits"]
         hits_before.reverse()
         after = later(channel, start, PER_PAGE - 10)
+        logit("AFTER", after)
         resp = es_client.search(index=INDEX, **after)
         hits_after = resp["hits"]["hits"]
         hits = hits_before + hits_after
@@ -200,6 +202,7 @@ def show_timeline(channel, start, end, middle=False):
         else:
             adjective = "later"
             kwargs = later(channel, start, PER_PAGE)
+        logit("TIMELINE", kwargs)
         resp = es_client.search(index=INDEX, **kwargs)
         hits = resp["hits"]["hits"]
         if not hits:
@@ -216,4 +219,5 @@ def show_timeline(channel, start, end, middle=False):
             continue
         g.color_map[nick] = sess_map.get(nick) or _pick_color()
     session["color_map"] = g.color_map
+    logit("ROWS", g.rows)
     return render_template("irc_timeline.html", make_clickable=make_clickable)

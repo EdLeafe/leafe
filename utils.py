@@ -12,6 +12,7 @@ import uuid
 import boto
 from flask import make_response
 import pymysql
+from pymysql.err import InternalError
 import requests
 
 
@@ -151,7 +152,7 @@ def human_fmt(num):
 
 
 def _user_creds():
-    with open("docreds.rc") as ff:
+    with open("/home/ed/docreds.rc") as ff:
         creds = ff.read()
     user_creds = {}
     for ln in creds.splitlines():

@@ -1,5 +1,6 @@
 import datetime
 import math
+import pprint
 import re
 import string
 from textwrap import TextWrapper
@@ -11,6 +12,7 @@ from flask import abort, Flask, g, render_template, request, session, url_for
 import utils
 
 
+ADMIN_IP = "108.205.7.108"
 LINK_PAT = re.compile(r"(https?://[^\s]+)")
 PLACEHOLDER_TEXT = "ABCDEF%sZYXWVU"
 # Elasticsearch doesn't alllow for accessing more than 10K records, even with
@@ -68,6 +70,10 @@ def _get_sort_order(order_by):
         "oldest_first": "posted:asc",
         "author_name": "from:asc",
         "natural": "",
+#        "recent_first": {"posted": "desc"},
+#        "oldest_first": {"posted": "asc"},
+#        "author_name": {"from": "asc"},
+#        "natural": "",
     }.get(order_by)
 
 
@@ -395,7 +401,10 @@ def archives_results_POST():
     kwargs["size"] = 10000
     kwargs["_source"] = ["msg_num"]
     startTime = time.time()
+
+    utils.debugout("KWARGS", kwargs)
     resp = es_client.search(index="email", **kwargs)
+    utils.debugout("RESP", resp)
     session["elapsed"] = g.elapsed = "%.4f" % (time.time() - startTime)
     g.full_results = [r["_source"]["msg_num"] for r in resp["hits"]["hits"]]
     session["full_results"] = g.full_results
@@ -412,6 +421,7 @@ def archives_results_POST():
 
     session["batch_size"] = batch_size
     session["kwargs"] = g.kwargs = kwargs
+    g.kwargs = f"<pre>{pprint.pformat(kwargs)}</pre"
     resp = es_client.search(index="email", **kwargs)
     total = "{:,}".format(resp["hits"]["total"]["value"])
     g.results = _extract_records(resp, translate_to_db=False)
@@ -420,6 +430,7 @@ def archives_results_POST():
     # Set up environment vals
     g.url = request.url
     g.remote_addr = request.remote_addr
+    g.from_admin = request.remote_addr == ADMIN_IP
 
     page = int(request.form.get("page", "1"))
     calc_pages = int(math.ceil(float(g.num_results) / batch_size))

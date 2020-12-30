@@ -1,4 +1,4 @@
-{% extends "master.html" %}
+{% extends "main.html" %}
 
 {% block title %}Search Results{% endblock %}
 
@@ -22,36 +22,51 @@
           </div>
         </div>
       {% endif %}
-  
+
       <div class="row">
         <div class="col s9 offset-s1">
           {{ g.pager_text | safe }}
         </div>
       </div>
-  
-  	<div class="row">
+
+      <div class="row">
         <div class="col l4 offset-l1">
           <a href="/archives">New Search</a>
         </div>
       </div>
-  
+
       <div class="row">
         <div class="col s9 offset-s1">
           <table class="striped">
             <tbody>
-  
+
               {% for num, msg in enumerate(g.results) %}
               <tr>
                 <td>
                   {{ g.offset + num + 1 }}. <a href="/archives/msg/{{ msg.msg_num }}">{{ msg.subject }}</a><br />
                   Author: <b>{{ fmt_author(msg.from) }}</b> Posted at: {{ fmt_date(msg.posted) }}
                 </td>
-  
+
               </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
       </div>
+  
+      <div class="row">
+        <div class="col s9 offset-s1">
+          {{ g.pager_text | safe }}
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col l4 offset-l1">
+          <a href="/archives">New Search</a>
+        </div>
+      </div>
+    {% endif %}
+    {% if g.from_admin %}
+        <p>{{ g.kwargs | safe }}</p>
     {% endif %}
 {% endblock %}

@@ -54,7 +54,7 @@ class SearchObj:
         try:
             crs.execute(sql, self.params)
             self.results = crs.fetchall()
-        except utils.InternalError:
+        except utils.PymysqlInternalError:
             terms = ", ".join(self.search_terms)
             self.exception = f"Search failed: illegal regex expression: '{terms}'"
         self.elapsed = time.time() - start

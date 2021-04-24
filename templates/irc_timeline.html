@@ -47,17 +47,19 @@ tr.hilite{
     {% block content %}
     <div class="row" style="margin-top: 2%">
     {% set ns = namespace(currdate="") %}
-    {% set first_row = g.rows[0] %}
-    {% set last_row = g.rows[-1] %}
-    {% set esc_chan = first_row["channel"].replace("#", "%23") %}
-    {% set prev_link = "%s/-/%s" % (esc_chan, first_row["posted"]) %}
-    {% set next_link = "%s/%s" % (esc_chan, last_row["posted"]) %}
-      <div class="col s1 left-align">
-        <a href="/timeline/{{ prev_link }}">Earlier</a>&nbsp;&nbsp;
-      </div>
-      <div class="col s1">
-        <a href="/timeline/{{ next_link }}">Later</a>
-      </div>
+    {% if g.rows %}
+      {% set first_row = g.rows[0] %}
+      {% set last_row = g.rows[-1] %}
+      {% set esc_chan = first_row["channel"].replace("#", "%23") %}
+      {% set prev_link = "%s/-/%s" % (esc_chan, first_row["posted"]) %}
+      {% set next_link = "%s/%s" % (esc_chan, last_row["posted"]) %}
+        <div class="col s1 left-align">
+          <a href="/timeline/{{ prev_link }}">Earlier</a>&nbsp;&nbsp;
+        </div>
+        <div class="col s1">
+          <a href="/timeline/{{ next_link }}">Later</a>
+        </div>
+    {% endif %}
       <div class="col s10 right-align">
         <a href="/ircsearch">New Search</a>
       </div>

@@ -17,6 +17,7 @@ START_DATE = "2016-01-01"
 END_DATE = "2020-12-31"
 INDEX = "irclog"
 HOST = "dodata"
+QUERY_MAX = 10000
 PER_PAGE = 100
 LINK_PAT = re.compile(r"(.*)\b(https?://\S+)(.*)", re.I)
 COLORS = (
@@ -63,7 +64,7 @@ def _get_channels():
     logit("CHANNELS", {"aggs": {"channels": {"terms": {"field": "channel", "size": 1000}}}})
     resp = es_client.search(
         index=INDEX,
-        body={"aggs": {"channels": {"terms": {"field": "channel.keyword", "size": 1000}}}},
+        body={"aggs": {"channels": {"terms": {"field": "channel", "size": 1000}}}},
         size=0,
     )
     clist = resp.get("aggregations").get("channels").get("buckets")
@@ -118,19 +119,23 @@ def POST_search_results():
     bqbf = kwargs["body"]["query"]["bool"]["filter"]
 
     if sel_channel:
-        bqbf.append({"term": {"channel.keyword": sel_channel}})
+        bqbf.append({"term": {"channel": sel_channel}})
     if search_nick:
         bqbf.append({"term": {"nick": search_nick}})
     if sort_order:
         kwargs["sort"] = _get_sort_order(sort_order)
-    kwargs["size"] = 10000
+    kwargs["size"] = QUERY_MAX
 
     startTime = time.time()
     logit("POST SEARCH KW", kwargs)
-    print("POST SEARCH KW", kwargs)
     resp = es_client.search(index=INDEX, **kwargs)
     g.elapsed = "%.4f" % (time.time() - startTime)
     hits = resp["hits"]["hits"]
+    hit_count = len(hits)
+    if hit_count == QUERY_MAX:
+        kwargs["size"] = 0
+        tot = es_client.search(index=INDEX, track_total_hits=True, **kwargs)
+        hit_count = tot["hits"]["total"]["value"]
 
     def hilite(s):
         """Hilite the search terms in the remark"""
@@ -144,7 +149,7 @@ def POST_search_results():
 
     g.hilite = hilite
     g.results = [hit["_source"] for hit in hits]
-    g.num_results = len(g.results)
+    g.num_results = hit_count
     g.kwargs = kwargs
     return render_template("irc_search_results.html", make_clickable=make_clickable)
 
@@ -163,7 +168,7 @@ def chan_range(chan, op, tm, size, ordr):
             "query": {
                 "bool": {
                     "filter": [
-                        {"term": {"channel.keyword": chan}},
+                        {"term": {"channel": chan}},
                         {"range": {"posted": {op: tm}}}
                     ]
                 }

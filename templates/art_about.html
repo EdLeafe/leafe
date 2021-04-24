@@ -1,4 +1,10 @@
 {% extends "main.html" %}
+{% block extra_JS %}
+  document.addEventListener('DOMContentLoaded', function() {
+    var elems = document.querySelectorAll('.collapsible');
+    var instances = M.Collapsible.init(elems, options);
+  });
+{% endblock %}
 {% block title %}About My Work{% endblock %}
   {% block content %}
     <div class="row">
@@ -15,5 +21,48 @@
     </div>
     <div class="row">
         My preferred medium for display is a digital display – I feel that it affords a range of luminosity that a print simply cannot match. To that end, I have created digital display software with the ability to control the displayed image as well as change it on a determined schedule. Ask me about it if you're interested.
+    </div>
+    <div class="row">
+      <h5>Exhibitions</h5>
+    </div>
+    <div class="row">
+      Up until recently I haven't pursued showing my work in public, as it was more for my
+      enjoyment than anything. But with the encouragement of my wife and friends, I've begun
+      submitting my photography to various Calls for Entry for exhibitions.
+    </div>
+    <div class="row">
+      <ul class="collapsible">
+		<li>
+		  <div class="collapsible-header"><i class="material-icons">camera_alt</i>2021</div>
+          <div class="collapsible-body">
+            <ul>
+                <li><i>-coming soon!-</i></li>
+            </ul>
+          </div>
+		</li>
+		<li>
+		  <div class="collapsible-header"><i class="material-icons">camera_alt</i>2020</div>
+          <div class="collapsible-body">
+            <ul>
+                <li><a href="https://www.praxisphotocenter.org/">Praxis Gallery</a>: <a href="https://www.praxisphotocenter.org/cfe-temp-gallery?lightbox=dataItem-kij77sy4"><b>Abandoned Spaces</b></a></li>
+                <li><a href="http://www.mwcponline.com/">Midwest Center for Photography</a>: <a href="http://www.mwcponline.com/suburban-architecture.html"><b>Suburban Architecture</b></a></li>
+              <li><a href="https://www.praxisphotocenter.org/">Praxis Gallery</a>: <a href="https://www.praxisphotocenter.org/praxis-gallery?lightbox=dataItem-kc1w2h0d"><b>Liquid Sky</b></a></li>
+              <li><a href="https://lacphoto.org/lacp/">Los Angeles Center for Photography</a>: <b>Member Fundraising Exhibition</b></li>
+              <li><a href="http://www.mwcponline.com/">Midwest Center for Photography</a>: <a
+                      href="http://www.mwcponline.com/homegrown.html"><b>Homegrown</b></a></li>
+              <li><a href="https://jonesgallerykc.com/">Jones Gallery</a>: <b>May Group Art Show</b></li>
+              <li><a href="http://www.mwcponline.com/">Midwest Center for Photography</a>: <a href="http://www.mwcponline.com/walkabout.html"><b>Walkabout</b></a></li>
+            </ul>
+          </div>
+		</li>
+		<li>
+		  <div class="collapsible-header"><i class="material-icons">camera_alt</i>2019</div>
+          <div class="collapsible-body">
+            <ul>
+                <li><a href="https://asmithgallery.com/">A Smith Gallery</a>: <a href="https://asmithgallery.com/exhibitions/red-2/"><b>Red</b></a></li>
+            </ul>
+          </div>
+		</li>
+      </ul>
     </div>
   {% endblock %}

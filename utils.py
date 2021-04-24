@@ -12,7 +12,7 @@ import uuid
 import boto
 from flask import make_response
 import pymysql
-from pymysql.err import InternalError
+from pymysql.err import InternalError as PymysqlInternalError
 import requests
 
 

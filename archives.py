@@ -38,9 +38,7 @@ ELASTIC_TO_DB_NAMES = {v: k for k, v in DB_TO_ELASTIC_NAMES.items()}
 
 
 def db_names_from_elastic(recs):
-    return [
-        dict((ELASTIC_TO_DB_NAMES.get(k), v) for k, v in rec.items()) for rec in recs
-    ]
+    return [dict((ELASTIC_TO_DB_NAMES.get(k), v) for k, v in rec.items()) for rec in recs]
 
 
 def _extract_records(resp, translate_to_db=True):
@@ -48,13 +46,9 @@ def _extract_records(resp, translate_to_db=True):
     excepts = 0
     for rec in recs:
         try:
-            rec["posted"] = datetime.datetime.strptime(
-                rec["posted"], "%Y-%m-%dT%H:%M:%S"
-            )
+            rec["posted"] = datetime.datetime.strptime(rec["posted"], "%Y-%m-%dT%H:%M:%S")
         except ValueError:
-            rec["posted"] = datetime.datetime.strptime(
-                rec["posted"], "%Y-%m-%d %H:%M:%S"
-            )
+            rec["posted"] = datetime.datetime.strptime(rec["posted"], "%Y-%m-%d %H:%M:%S")
             excepts += 1
     if translate_to_db:
         allrecs = [utils.DotDict(rec) for rec in db_names_from_elastic(recs)]
@@ -70,10 +64,10 @@ def _get_sort_order(order_by):
         "oldest_first": "posted:asc",
         "author_name": "from:asc",
         "natural": "",
-#        "recent_first": {"posted": "desc"},
-#        "oldest_first": {"posted": "asc"},
-#        "author_name": {"from": "asc"},
-#        "natural": "",
+        #        "recent_first": {"posted": "desc"},
+        #        "oldest_first": {"posted": "asc"},
+        #        "author_name": {"from": "asc"},
+        #        "natural": "",
     }.get(order_by)
 
 
@@ -148,21 +142,15 @@ def _pager_text():
     for pg in range(pagecount):
         pgnum = pg + 1
         linkstate = "active" if thispage == pgnum else "waves-effect"
-        page_links.append(
-            f"""<li class={linkstate}><a href={url}?page={pgnum}>{pgnum}</a></li>"""
-        )
+        page_links.append(f"""<li class={linkstate}><a href={url}?page={pgnum}>{pgnum}</a></li>""")
     page_link_text = "\n        ".join(page_links)
 
     if thispage == 1:
-        prev_text = (
-            """<li class="grey-text"><i class="material-icons">chevron_left</i></li>"""
-        )
+        prev_text = """<li class="grey-text"><i class="material-icons">chevron_left</i></li>"""
     else:
         prev_text = f"""<li class="waves-effect"><a href="{url}?page={prevpage}"><i class="material-icons">chevron_left</i></a></li>"""
     if thispage == pagecount:
-        next_text = (
-            """<li class="grey-text"><i class="material-icons">chevron_right</i></li>"""
-        )
+        next_text = """<li class="grey-text"><i class="material-icons">chevron_right</i></li>"""
     else:
         next_text = f"""<li class="waves-effect"><a href="{url}?page={nextpage}"><i class="material-icons">chevron_right</i></a></li>"""
 
@@ -361,9 +349,7 @@ def archives_results_POST():
     end_date = request.form.get("end_date")
     # We want to include items on the end date, so extend the search to the
     # following date.
-    end_date_dt = datetime.datetime.strptime(end_date, "%Y-%m-%d") + datetime.timedelta(
-        days=1
-    )
+    end_date_dt = datetime.datetime.strptime(end_date, "%Y-%m-%d") + datetime.timedelta(days=1)
     end_date_plus = end_date_dt.strftime("%Y-%m-%d")
     sort_order = _get_sort_order(request.form.get("sort_order"))
     include_OT = bool(request.form.get("chk_OT"))

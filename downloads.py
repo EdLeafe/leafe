@@ -15,11 +15,18 @@ import utils
 UPLOAD_DIR = "/var/www/uploads"
 DOWNLOAD_PATH = "download_file"
 DLBASE = f"https://leafe.com/{DOWNLOAD_PATH}"
-#CDNBASE = "https://baba3e9f50e49daa7c3f-032440835eb7c07735745c77228f7f03.ssl.cf1.rackcdn.com"
+# CDNBASE = "https://baba3e9f50e49daa7c3f-032440835eb7c07735745c77228f7f03.ssl.cf1.rackcdn.com"
 CDNBASE = "https://com-leafe-images.nyc3.cdn.digitaloceanspaces.com/ftp"
-LICENSES = {"f": "Freeware ", "s": "Shareware ", "c": "Commercial ",
-        "d": "Demoware ", "g": "GPL Software ", "l": "LGPL Software ",
-        "m": "Creative Commons License ", "o": "Other Open Source License "}
+LICENSES = {
+    "f": "Freeware ",
+    "s": "Shareware ",
+    "c": "Commercial ",
+    "d": "Demoware ",
+    "g": "GPL Software ",
+    "l": "LGPL Software ",
+    "m": "Creative Commons License ",
+    "o": "Other Open Source License ",
+}
 
 search_term = ""
 
@@ -27,9 +34,9 @@ search_term = ""
 def _cost_type(val, cost):
     license = LICENSES.get(val, "")
     if cost:
-       cost_text = " - $%s" % cost
-    else:	
-       cost_text = ""
+        cost_text = " - $%s" % cost
+    else:
+        cost_text = ""
     return "".join([license, cost_text])
 
 
@@ -57,7 +64,11 @@ def search_dls():
     search_term = request.form.get("term")
     term = """ and mdesc like '%%%s%%' 
             or ctitle like '%%%s%%' 
-            or cauthor like '%%%s%%' """ % (search_term, search_term, search_term)
+            or cauthor like '%%%s%%' """ % (
+        search_term,
+        search_term,
+        search_term,
+    )
     return _run_query(term=term)
 
 
@@ -78,8 +89,11 @@ def _update_link(link):
 def _run_query(term=None):
     term = term or ""
     crs = utils.get_cursor()
-    sql = """select * from files where lpublish = 1 %s
-            order by ctype ASC, dlastupd DESC;""" % term
+    sql = (
+        """select * from files where lpublish = 1 %s
+            order by ctype ASC, dlastupd DESC;"""
+        % term
+    )
     crs.execute(sql)
     recs = crs.fetchall()
 
@@ -93,14 +107,36 @@ def _run_query(term=None):
 
     hl_func = partial(_hilite_match, search_term)
 
-    func_dict = {"hilite": hl_func, "cost_calc": _cost_type, "any": any,
-            "update_link": _update_link}
+    func_dict = {
+        "hilite": hl_func,
+        "cost_calc": _cost_type,
+        "any": any,
+        "update_link": _update_link,
+    }
     return render_template("download_list.html", **func_dict)
 
 
 def upload():
     g.message = ""
     return render_template("upload.html")
+
+
+def upload_test(app):
+    import flask
+
+    #    app.logger.warning("upload_test() called")
+    chunk_size = 8192
+    total_size = 0
+    while True:
+        chunk = flask.request.stream.read(chunk_size)
+        chunk_len = len(chunk)
+        #        app.logger.warning(f"CHUNK: {chunk_len}")
+        total_size += chunk_len
+        if not chunk_len:
+            break
+    #    app.logger.warning(f"Returning {total_size}")
+    time.sleep(1)
+    return str(total_size)
 
 
 def upload_file():
@@ -118,7 +154,7 @@ def upload_file():
     newfile.stream.close()
     file_size = os.stat(target_file)[stat.ST_SIZE]
 
-    fsize = utils.human_fmt(file_size).replace(" ","")
+    fsize = utils.human_fmt(file_size).replace(" ", "")
     # Don't use the CDN; use the generic download URL that will redirect.
     fldr = {"c": "cb", "d": "dabo"}.get(post["section"], "")
     cfile = os.path.join(DLBASE, fldr, newname)
@@ -126,10 +162,19 @@ def upload_file():
     sql = """INSERT INTO files (ctype, ctitle, mdesc, cfile, ccosttype, ncost,
             csize, cauthor, cauthoremail, dlastupd, lpublish)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)"""
-    args = (post.get("section"), post.get("title"), post.get("description"),
-            cfile, post.get("file_license"), post.get("cost"), fsize,
-            post.get("author"), post.get("author_email"),
-            datetime.date.today(), False)
+    args = (
+        post.get("section"),
+        post.get("title"),
+        post.get("description"),
+        cfile,
+        post.get("file_license"),
+        post.get("cost"),
+        fsize,
+        post.get("author"),
+        post.get("author_email"),
+        datetime.date.today(),
+        False,
+    )
     crs = utils.get_cursor()
     crs.execute(sql, args)
 
@@ -145,8 +190,18 @@ Email = %s
 
 Description:
 %s
-""" % (request.remote_addr, post.get("section"), post.get("title"), newname, post.get("file_license"), post.get("cost"),
-    fsize, post.get("author"), post.get("author_email"), post.get("description"))
+""" % (
+        request.remote_addr,
+        post.get("section"),
+        post.get("title"),
+        newname,
+        post.get("file_license"),
+        post.get("cost"),
+        fsize,
+        post.get("author"),
+        post.get("author_email"),
+        post.get("description"),
+    )
 
     msg = """From: File Uploads <files@leafe.com>
 X-Mailer: flask script
@@ -155,10 +210,12 @@ Subject: New Uploaded File
 Date: %s
 
 %s
-""" % (time.strftime("%c"), body)
+""" % (
+        time.strftime("%c"),
+        body,
+    )
     smtp = smtplib.SMTP("mail.leafe.com")
     smtp.sendmail("files@leafe.com", "ed@leafe.com", msg)
 
     g.message = "Your file has been uploaded."
-    return render("upload.html")
-
+    return render_template("upload.html")

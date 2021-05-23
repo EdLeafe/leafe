@@ -13,7 +13,7 @@
       height: 600px;
     }
     .parallax-short {
-      height: 400px;
+      height: 600px;
     }
   </style>
   {% endblock %}
@@ -23,15 +23,21 @@
     <!-- Close out container tag -->
     </div>
 
+    <div class="section white">
+      <div class="row container">
+        <h3 class="header">Ed Leafe - Artist</h3>
+      </div>
+    </div>
     <div class="parallax-container parallax-short">
       <div class="parallax"><img src="static/images/ed_backyard_1000h.jpg" /></div>
     </div>
     <div class="section white">
       <div class="row container">
-        <h3 class="header">Ed Leafe - Artist</h3>
         <p class="flow-text grey-text text-darken-3 lighten-3">I am a photographic artist, and have been creating fine art for nearly 40 years.</p>
-        <p class="flow-text grey-text text-darken-3 lighten-3">Previously my website was only for my technological side, but I'm planning on adding a lot more of my art, in the form of both my images and the thoughts /feelings behind them. So far I've only added a few pieces of my work to this site, but I do plan on adding more in the next few months. I may even post a few personal shots. 🙂</p>
-        <p class="flow-text grey-text text-darken-3 lighten-3">I have developed an approach to photography I call <b><u><a href="/art/design"a>Abstract Realism</a></u></b>. There is a philosophy behind this approach, but I haven't yet had the time to write it down in any way. My plan is to add my thoughts on this to the site soon.</p>
+        <p class="flow-text grey-text text-darken-3 lighten-3">I have developed an approach to
+        photography I call <b><u><a href="/art/design"a>Abstract Realism</a></u></b>. It places
+        importance on honesty in your images: what you see is just what the camera was pointed at.
+        There are no filters, post-processing effects, or other manipulation.</p>
       </div>
     </div>
     <div class="parallax-container">
@@ -40,6 +46,13 @@
     <div class="section white">
       <div class="row container">
         <h3 class="header">Ed Leafe - Technologist</h3>
+      </div>
+    </div>
+    <div class="parallax-container">
+        <div class="parallax"><a href="/art"><img src="static/images/index/{{ g.images[1] }}" /></a></div>
+    </div>
+    <div class="section white">
+      <div class="row container">
         <p class="flow-text grey-text text-darken-3 lighten-3">While art is my passion, it is technology that pays the bills. I started programming in 1974 (!), and have been working professionally as a developer, consultant, DBA, and team leader for 30 years.</p>
         <p class="flow-text grey-text text-darken-3 lighten-3">I have been working with the <a href="https://python.org" target="_new">Python programming language</a> for the last 15 years. Besides being powerful and flexible, it also comes along with a <a href="https://www.python.org/community/" target="_new">great community</a>. While almost any programming language can get the job done, I've learned that finding the right community of people will make your life much more fulfilling. Let's face it: technology can be cold sometimes; adding the human element to it makes it, well, more human.</p>
 
@@ -50,7 +63,7 @@
       </div>
     </div>
     <div class="parallax-container">
-        <div class="parallax"><a href="/art"><img src="static/images/index/{{ g.images[1] }}" /></a></div>
+        <div class="parallax"><a href="/art"><img src="static/images/index/{{ g.images[2] }}" /></a></div>
     </div>
 
     <!-- Balance closing  container tag -->

@@ -43,6 +43,7 @@ class DotDict(dict):
 
     If the key is not present, an AttributeError is raised.
     """
+
     _att_mapper = {}
     _fail = object()
 
@@ -53,8 +54,9 @@ class DotDict(dict):
         att = self._att_mapper.get(att, att)
         ret = self.get(att, self._fail)
         if ret is self._fail:
-            raise AttributeError("'%s' object has no attribute '%s'" %
-                    (self.__class__.__name__, att))
+            raise AttributeError(
+                "'%s' object has no attribute '%s'" % (self.__class__.__name__, att)
+            )
         return ret
 
     __setattr__ = dict.__setitem__
@@ -62,8 +64,7 @@ class DotDict(dict):
 
 
 def runproc(cmd):
-    proc = Popen([cmd], shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE,
-            close_fds=True)
+    proc = Popen([cmd], shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
     stdout_text, stderr_text = proc.communicate()
     return stdout_text, stderr_text
 
@@ -82,9 +83,14 @@ def connect(creds=None):
     cls = pymysql.cursors.DictCursor
     # If credentials aren't supplied, use the ones in .dbcreds
     creds = creds or parse_creds()
-    ret = pymysql.connect(host=creds.get("host") or HOST, user=creds["username"],
-            passwd=creds["password"], db=creds["dbname"], charset="utf8",
-            cursorclass=cls)
+    ret = pymysql.connect(
+        host=creds.get("host") or HOST,
+        user=creds["username"],
+        passwd=creds["password"],
+        db=creds["dbname"],
+        charset="utf8",
+        cursorclass=cls,
+    )
     return ret
 
 
@@ -123,12 +129,13 @@ def nocache(view):
     def no_cache(*args, **kwargs):
         response = make_response(view(*args, **kwargs))
         response.headers["Last-Modified"] = datetime.datetime.now()
-        response.headers["Cache-Control"] = "no-store, no-cache, " \
-                "must-revalidate, post-check=0, pre-check=0, max-age=0"
+        response.headers["Cache-Control"] = (
+            "no-store, no-cache, " "must-revalidate, post-check=0, pre-check=0, max-age=0"
+        )
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "-1"
         return response
-        
+
     return update_wrapper(no_cache, view)
 
 
@@ -137,11 +144,10 @@ def human_fmt(num):
     # Make sure that we get a valid input. If an invalid value is passed, we
     # want the exception to be raised.
     num = int(num)
-    units = list(zip(["bytes", "K", "MB", "GB", "TB", "PB"],
-            [0, 0, 1, 2, 2, 2]))
+    units = list(zip(["bytes", "K", "MB", "GB", "TB", "PB"], [0, 0, 1, 2, 2, 2]))
     if num > 1:
         exponent = min(int(math.log(num, 1024)), len(units) - 1)
-        quotient = float(num) / 1024**exponent
+        quotient = float(num) / 1024 ** exponent
         unit, num_decimals = units[exponent]
         format_string = "{:.%sf} {}" % (num_decimals)
         return format_string.format(quotient, unit)
@@ -167,9 +173,11 @@ def _user_creds():
 
 def get_client():
     user_creds = _user_creds()
-    conn = boto.connect_s3(aws_access_key_id=user_creds["spacekey"],
-            aws_secret_access_key=user_creds["secret"],
-            host="nyc3.digitaloceanspaces.com")
+    conn = boto.connect_s3(
+        aws_access_key_id=user_creds["spacekey"],
+        aws_secret_access_key=user_creds["secret"],
+        host="nyc3.digitaloceanspaces.com",
+    )
     bucket = conn.get_bucket(user_creds["bucket"])
     return bucket
 
@@ -178,7 +186,7 @@ def upload_to_DO(fpath, folder=None, public=False):
     """Uploads the specified file to the default DigitalOcean space. If a
     folder is specified, that will be used as a prefix for the remote file.
     Example:
-    
+
         fpath = "/home/ed/photos/test_image.jpg"
         folder = None
         -> will create the key 'test_image.jpg'
@@ -214,8 +222,9 @@ def get_photos_in_gallery(gallery_name):
     clt = get_client()
     prefix = "galleries/{}/".format(gallery_name)
     all_photos = clt.list(prefix=prefix)
-    photos_with_meta = {itm.name.split("galleries/")[-1]: clt.get_key(itm).metadata for itm in
-            all_photos}
+    photos_with_meta = {
+        itm.name.split("galleries/")[-1]: clt.get_key(itm).metadata for itm in all_photos
+    }
     photo_keys = list(photos_with_meta.keys())
     random.shuffle(photo_keys)
     shuffled_photos = {pk: photos_with_meta.get(pk) for pk in photo_keys if not pk.endswith("/")}
@@ -234,9 +243,9 @@ def download(remote_url, folder, fname):
 
 def _parse_search_terms(term_string):
     phrases = PHRASE_PAT.findall(term_string)
-#    logit("Phrases:", phrases)
+    #    logit("Phrases:", phrases)
     terms = PHRASE_PAT.split(term_string)
-#    logit("Terms:", terms)
+    #    logit("Terms:", terms)
     for phrase in phrases:
         terms.remove(phrase)
     words_required = []
@@ -246,10 +255,10 @@ def _parse_search_terms(term_string):
     for phrase in phrases:
         phrase = phrase.strip()
         if phrase.startswith("-"):
-#            logit("Forbidden phrase:", phrase)
+            #            logit("Forbidden phrase:", phrase)
             phrases_forbidden.append(phrase[1:])
         else:
-#            logit("Allowed phrase:", phrase)
+            #            logit("Allowed phrase:", phrase)
             phrases_required.append(phrase)
     for term in terms:
         # A 'term' can consist of multiple words.
@@ -257,14 +266,18 @@ def _parse_search_terms(term_string):
         for term_word in term_words:
             term_word = term_word.strip()
             if term_word.startswith("-"):
-#                logit("Forbidden term:", term_word)
+                #                logit("Forbidden term:", term_word)
                 words_forbidden.append(term_word[1:])
             else:
-#                logit("Allowed term:", term_word)
+                #                logit("Allowed term:", term_word)
                 words_required.append(term_word)
     # We have the values in lists, but we need simple strings
-    return (" ".join(words_required), " ".join(words_forbidden),
-            " ".join(phrases_required), " ".join(phrases_forbidden))
+    return (
+        " ".join(words_required),
+        " ".join(words_forbidden),
+        " ".join(phrases_required),
+        " ".join(phrases_forbidden),
+    )
 
 
 def add_match(lst, key, val, operator=None):
@@ -279,18 +292,27 @@ def add_match_phrase(lst, key, val):
 
 
 def search_term_query(search_text, search_field, start_date, end_date):
-    kwargs = {"body": {"query": {
-            "bool": {
-                "filter": [],
-                "must": [],
-                "must_not": [],
-            }}}}
+    kwargs = {
+        "body": {
+            "query": {
+                "bool": {
+                    "filter": [],
+                    "must": [],
+                    "must_not": [],
+                }
+            }
+        }
+    }
     bqbm = kwargs["body"]["query"]["bool"]["must"]
     neg_bqbm = kwargs["body"]["query"]["bool"]["must_not"]
     bqbf = kwargs["body"]["query"]["bool"]["filter"]
 
-    (words_required, words_forbidden, phrases_required,
-            phrases_forbidden) = _parse_search_terms(search_text)
+    (
+        words_required,
+        words_forbidden,
+        phrases_required,
+        phrases_forbidden,
+    ) = _parse_search_terms(search_text)
     if words_required:
         add_match(bqbm, search_field, words_required, operator="and")
     if words_forbidden:

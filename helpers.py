@@ -7,7 +7,7 @@ Consists of functions to typically be used within templates, but also
 available to Controllers. This module is available to templates as 'h'.
 """
 # Import helpers as desired, or define your own, ie:
-#from webhelpers.html.tags import checkbox, password
+# from webhelpers.html.tags import checkbox, password
 
 import datetime
 import inspect
@@ -19,14 +19,12 @@ from textwrap import TextWrapper
 
 
 MAIN_CONF = "/etc/postfix/main.cf"
-VALID_NAMES = ("leafe_com", "daboserver_com", "sa_home", "iphone", "hotel",
-        "roaming")
+VALID_NAMES = ("leafe_com", "daboserver_com", "sa_home", "iphone", "hotel", "roaming")
 copyright = u"Copyright ©%s Ed Leafe" % datetime.datetime.now().year
 
 
 def runproc(cmd):
-    proc = Popen([cmd], shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE,
-            close_fds=True)
+    proc = Popen([cmd], shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, close_fds=True)
     stdout_text, stderr_text = proc.communicate()
     return stdout_text, stderr_text
 
@@ -50,7 +48,7 @@ def maskEmail(val):
     dot1 = "DOT"
     dot = ""
     for ch in dot1:
-        if random.randrange(0,2):
+        if random.randrange(0, 2):
             dot += "."
         dot += ch
     return pat.sub("\g<1> " + atString + " \g<2> " + dot + " \g<3>", val)
@@ -91,6 +89,7 @@ class DotDict(dict):
 
     If the key is not present, an AttributeError is raised.
     """
+
     _att_mapper = {}
     _fail = object()
 
@@ -101,8 +100,9 @@ class DotDict(dict):
         att = self._att_mapper.get(att, att)
         ret = self.get(att, self._fail)
         if ret is self._fail:
-            raise AttributeError("'%s' object has no attribute '%s'" %
-                    (self.__class__.__name__, att))
+            raise AttributeError(
+                "'%s' object has no attribute '%s'" % (self.__class__.__name__, att)
+            )
         return ret
 
     __setattr__ = dict.__setitem__

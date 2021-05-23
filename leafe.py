@@ -15,6 +15,28 @@ import twitterthread
 import zipcodes
 
 
+from logging.config import dictConfig
+
+dictConfig(
+    {
+        "version": 1,
+        "formatters": {
+            "default": {
+                "format": "[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+            }
+        },
+        "handlers": {
+            "wsgi": {
+                "class": "logging.StreamHandler",
+                "stream": "ext://flask.logging.wsgi_errors_stream",
+                "formatter": "default",
+            }
+        },
+        "root": {"level": "INFO", "handlers": ["wsgi"]},
+    }
+)
+
+
 INDEX_IMAGE_PATH = "static/images/index/"
 
 app = Flask(__name__)
@@ -32,7 +54,7 @@ Session(app)
 def _select_images():
     pth = os.path.join(os.getcwd(), INDEX_IMAGE_PATH)
     images = os.listdir(pth)
-    return random.sample(images, 2)
+    return random.sample(images, 5)
 
 
 #### Basic routes ####
@@ -163,6 +185,11 @@ def upload_file():
     return downloads.upload_file()
 
 
+@app.route("/upload_test", methods=["POST"])
+def upload_test():
+    return downloads.upload_test(app)
+
+
 #### IRC log routes ####
 @app.route("/ircsearch", methods=["GET"])
 def get_ircsearch():
@@ -189,6 +216,7 @@ def timeline(channel, start, end=None):
 @app.route("/twitterthread", methods=["GET"])
 def get_twitterthread():
     return twitterthread.show_form()
+
 
 @app.route("/twitter_format", methods=["POST"])
 def make_twitter_thread():

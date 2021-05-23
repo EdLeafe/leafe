@@ -5,7 +5,6 @@ import re
 import sys
 
 
-
 MAX_LENGTH = 280
 BREAK_ON_SENTENCE = True
 END_TXT = " /end"
@@ -18,7 +17,9 @@ BREAK_CHARS_PAT = re.compile(BREAK_CHARS)
 NOT_PUNC = r"[^\.\?!;:,]+"
 SEP = "^@^"
 TOTAL_HOLDER = "@"
-URL_PAT = re.compile(r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+")
+URL_PAT = re.compile(
+    r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+)
 # All URLs count as 23 characters in tweets
 URL_PLACEHOLDER = "@" * 23
 
@@ -45,7 +46,7 @@ def _get_page_pattern(num_style, txtlen):
         # to reserve for the total in 1/N style numbering. For this, take the total length divided
         # by the max per tweet, and double it.
         maxnum = int(txtlen / MAX_LENGTH) * 2
-        holder = (TOTAL_HOLDER * len(str(maxnum)))
+        holder = TOTAL_HOLDER * len(str(maxnum))
         pg_pat = "{}/" + holder
         if tag_position == "b":
             pg_pat = pg_pat + " "
@@ -128,6 +129,7 @@ def chunker(tokens, num_style, pg_pat, end_text):
     sentences = []
     sentence_end = 0
     from utils import logit
+
     logit("TOKENS AT START", tokens)
     while True:
         try:
@@ -224,11 +226,21 @@ def tokenize(txt, break_style):
     reduced_text = reduce_urls(txt)
     if break_style == "sentence":
         scanner = re.Scanner(
-            [(r" ", spc), (SENTENCE_END, snt), (BREAK_CHARS, brk), (NOT_PUNC, char),]
+            [
+                (r" ", spc),
+                (SENTENCE_END, snt),
+                (BREAK_CHARS, brk),
+                (NOT_PUNC, char),
+            ]
         )
     else:
         scanner = re.Scanner(
-            [(r" ", spc), (SENTENCE_END, snt), (BREAK_CHARS, snt), (NOT_PUNC, char),]
+            [
+                (r" ", spc),
+                (SENTENCE_END, snt),
+                (BREAK_CHARS, snt),
+                (NOT_PUNC, char),
+            ]
         )
     scanner.scan(reduce_urls(txt))
     # Now replace the URLs where their placeholders were
@@ -243,7 +255,7 @@ def main():
     if len(sys.argv) < 2:
         fname = TEST_FILE
         number_style = "sne"
-        break_at =  "sentence"
+        break_at = "sentence"
         end_text = "/end"
     else:
         fname = sys.argv[1]

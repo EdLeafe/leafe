@@ -5,6 +5,7 @@ import boto
 
 PHOTO_DIR = "/home/ed/dls/photos/"
 
+
 def _user_creds():
     with open("/home/ed/docreds.rc") as ff:
         creds = ff.read()
@@ -21,9 +22,11 @@ def _user_creds():
 
 def create_client():
     user_creds = _user_creds()
-    conn = boto.connect_s3(aws_access_key_id=user_creds["spacekey"],
-            aws_secret_access_key=user_creds["secret"],
-            host="nyc3.digitaloceanspaces.com")
+    conn = boto.connect_s3(
+        aws_access_key_id=user_creds["spacekey"],
+        aws_secret_access_key=user_creds["secret"],
+        host="nyc3.digitaloceanspaces.com",
+    )
     bucket = conn.get_bucket(user_creds["bucket"])
     return bucket
 
@@ -40,6 +43,7 @@ def make_folder_public(folder):
 
 def main():
     import pudb
+
     pudb.set_trace()
     clt = create_client()
     for root, dirs, files in os.walk(PHOTO_DIR, topdown=True):

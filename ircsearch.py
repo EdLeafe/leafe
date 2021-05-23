@@ -1,7 +1,7 @@
-import cgi
 import copy
 import datetime as dt
 import hashlib
+import html
 import random
 import re
 import time
@@ -61,7 +61,10 @@ def _make_username():
 
 
 def _get_channels():
-    logit("CHANNELS", {"aggs": {"channels": {"terms": {"field": "channel", "size": 1000}}}})
+    logit(
+        "CHANNELS",
+        {"aggs": {"channels": {"terms": {"field": "channel", "size": 1000}}}},
+    )
     resp = es_client.search(
         index=INDEX,
         body={"aggs": {"channels": {"terms": {"field": "channel", "size": 1000}}}},
@@ -74,9 +77,7 @@ def _get_channels():
 
 
 def _get_sort_order(order_by):
-    sorttext = {"recent_first": "posted:desc", "oldest_first": "posted:asc"}.get(
-        order_by
-    )
+    sorttext = {"recent_first": "posted:desc", "oldest_first": "posted:asc"}.get(order_by)
     return [sorttext]
 
 
@@ -93,7 +94,7 @@ def make_clickable(p):
     if not mtch:
         if "<span " in p or "<b>" in p:
             return p
-        return cgi.escape(p)
+        return html.escape(p)
     pre, uri, post = mtch.groups()
     if "<span " in uri:
         # Hilited text, don't make a link
@@ -144,7 +145,8 @@ def POST_search_results():
         else:
             terms = [search_terms]
         for term in terms:
-            s = s.replace(term, "<span class=hilite>%s</span>" % term)
+            #            s = s.replace(term, "<span class=hilite>%s</span>" % term)
+            s = re.sub(term, f"<span class=hilite>{term}</span>", s, flags=re.I)
         return s
 
     g.hilite = hilite
@@ -169,7 +171,7 @@ def chan_range(chan, op, tm, size, ordr):
                 "bool": {
                     "filter": [
                         {"term": {"channel": chan}},
-                        {"range": {"posted": {op: tm}}}
+                        {"range": {"posted": {op: tm}}},
                     ]
                 }
             }

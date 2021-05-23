@@ -35,4 +35,4 @@ for rec in recs:
         raise
     write_to_log("{}: Completed upload of {}\n\n".format(time.ctime(), local))
 
-    crs.execute("update files set uploaded=1 where iid = %s", (iid, ))
+    crs.execute("update files set uploaded=1 where iid = %s", (iid,))

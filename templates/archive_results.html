@@ -68,5 +68,6 @@
     {% endif %}
     {% if g.from_admin %}
         <p>{{ g.kwargs | safe }}</p>
+        <p>RESULTS: {{ g.results | safe }}</p>
     {% endif %}
 {% endblock %}

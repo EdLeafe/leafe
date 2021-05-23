@@ -19,7 +19,7 @@ class SearchObj:
         self.strict = True
 
     def strictify(self, val):
-        if  self.strict:
+        if self.strict:
             if not val.startswith("^"):
                 val = "^{}".format(val)
             if not val.endswith("$"):
@@ -82,4 +82,3 @@ def show():
         g.elapsed = 0.0
         g.exception = ""
     return render_template("zipcodes.html")
-

@@ -4,8 +4,13 @@ cryptography
 elasticsearch
 Flask
 Flask-Session
+ipython
 keyring
 mock
 py
 PyMySQL
+pytest
+pytest-pudb
+requests
 six
+uwsgi

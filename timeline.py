@@ -12,8 +12,10 @@ INDEX = "irclog"
 HOST = "159.203.122.132"
 es_client = Elasticsearch(host=HOST)
 
+
 def show(channel, start):
     return "Received: %s @ %s" % (channel, start)
+
 
 def _make_username():
     now = dt.datetime.now().strftime("%T.%f").encode("utf8")
@@ -21,8 +23,7 @@ def _make_username():
 
 
 def _get_channels():
-    resp = es_client.search("irclog", body={"aggs": {"channels": {
-            "terms": {"field": "channel"}}}})
+    resp = es_client.search("irclog", body={"aggs": {"channels": {"terms": {"field": "channel"}}}})
     clist = resp.get("aggregations").get("channels").get("buckets")
     return [cl["key"] for cl in clist]
 
@@ -56,16 +57,16 @@ def POST_search_results():
     if sel_channel == "_all":
         body = {"query": {match_type: {"remark": search_terms}}}
     else:
-        body = {"query": { 
-                "bool": { 
-                  "must": [{match_type: {"remark": search_terms}}],
-                  "filter": [{"term": {"channel": sel_channel}}]
-                }}}
+        body = {
+            "query": {
+                "bool": {
+                    "must": [{match_type: {"remark": search_terms}}],
+                    "filter": [{"term": {"channel": sel_channel}}],
+                }
+            }
+        }
 
-    kwargs = {
-            "body": body,
-            "size": 10000,
-            "sort": ["posted:%s" % sort_order]}
+    kwargs = {"body": body, "size": 10000, "sort": ["posted:%s" % sort_order]}
 
     resp = es_client.search(INDEX, **kwargs)
     hits = resp["hits"]["hits"]

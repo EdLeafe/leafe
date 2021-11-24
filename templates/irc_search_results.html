@@ -31,7 +31,7 @@
 
     <div class="row">
       <div class="col s9">
-        <h5>Your query returned <b>{{ g.num_results }}</b> match{{ "es" if g.num_results > 1 else "" }} in <b><i>{{ g.elapsed }} seconds</i></b></h5>
+          <h5>Your query returned <b>{{ g.formatted_results }}</b> match{{ "es" if g.num_results > 1 else "" }} in <b><i>{{ g.elapsed }} seconds</i></b></h5>
       </div>
     </div>
 

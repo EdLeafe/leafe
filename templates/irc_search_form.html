@@ -22,6 +22,9 @@
     var elems = document.querySelectorAll('select');
     var instances = M.FormSelect.init(elems, options={});
 
+    elems = document.querySelectorAll('.collapsible');
+    instances = M.Collapsible.init(elems, inDuration=500);
+
     elems = document.querySelectorAll('.autocomplete');
     instances = M.Autocomplete.init(elems, {"data": channel_names});
 
@@ -66,6 +69,31 @@ td{
         <input type="text" id="channel" name="channel" class="autocomplete">
       </div>
     </div>
+    <div class="col s1">
+    </div>
+    <div class="col s6">
+      <ul class="collapsible">
+        <li>
+          <div class="collapsible-header">
+            <i class="material-icons">info</i>How to Format Search Terms
+          </div>
+          <div class="collapsible-body">
+            <p>Enter your search terms below. These will be used to find messages whose bodies contain those terms.</p>
+            <p>Results will include all individual words in the search terms.</p>
+            <p>To indicate that a term must <b><i>NOT</i></b> be in the results, prefix it with a minus sign (<b>-</b>)</p>
+            <p>To search for a particular phrase, surround that phrase with double quotes</p>
+            <p>To exclude a particular phrase, add a minus sign (<b>-</b>) as the first character inside the quotes.</p>
+            <p>Examples:</p>
+            <p><blockquote>addition math -remodel</blockquote></p>
+            <p><i class="tiny material-icons">lens</i> This will return entries containing the words 'addition' and 'math', but not if it also includes the word 'remodel'.</p>
+            <p><blockquote>database "corrupted index"</blockquote></p>
+            <p><i class="tiny material-icons">lens</i> This will return all entries with the word 'database' and the exact phrase 'corrupted index'.</p>
+            <p><blockquote>database "-corrupted index"</blockquote></p>
+            <p><i class="tiny material-icons">lens</i> This will return all entries with the word 'database', but <b><i>not</i></b> any with the exact phrase 'corrupted index'.</p>
+          </div>
+        </li>
+      </ul>
+    </div>
   </div>
 
   <div class="row">
@@ -75,31 +103,6 @@ td{
         <input type="text" id="msg_text" name="msg_text">
       </div>
     </div>
-    <div class="col s5">
-      <!-- Modal Trigger -->
-      <button data-target="format_howto" class="btn modal-trigger">Formatting Help</button>
-    </div>
-	<!-- Modal Structure -->
-	<div id="format_howto" class="modal">
-	  <div class="modal-content">
-	    <h4>How to Format Search Terms</h4>
-		<p>Enter your search terms below. These will be used to find messages whose bodies contain those terms.</p>
-		<p>Results will include all individual words in the search terms.</p>
-		<p>To indicate that a term must <b><i>NOT</i></b> be in the results, prefix it with a minus sign (<b>-</b>)</p>
-		<p>To search for a particular phrase, surround that phrase with double quotes</p>
-		<p>To exclude a particular phrase, add a minus sign (<b>-</b>) as the first character inside the quotes.</p>
-		<p>Examples:</p>
-		<p><blockquote>addition math -remodel</blockquote></p>
-		<p><i class="tiny material-icons">lens</i> This will return entries containing the words 'addition' and 'math', but not if it also includes the word 'remodel'.</p>
-		<p><blockquote>database "corrupted index"</blockquote></p>
-		<p><i class="tiny material-icons">lens</i> This will return all entries with the word 'database' and the exact phrase 'corrupted index'.</p>
-		<p><blockquote>database "-corrupted index"</blockquote></p>
-		<p><i class="tiny material-icons">lens</i> This will return all entries with the word 'database', but <b><i>not</i></b> any with the exact phrase 'corrupted index'.</p>
-	  </div>
-	  <div class="modal-footer">
-	    <a href="#!" class="modal-close waves-effect waves-green btn-flat">Close</a>
-	  </div>
-	</div>
   </div>
 
   <div class="row">

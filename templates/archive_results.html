@@ -11,11 +11,11 @@
     {% else %}
       <div class="row">
         <div class="col s9 offset-s1">
-          <h5>Your query returned <b>{{ g.num_results }}</b> match{{ "es" if g.num_results > 1 else "" }}
+            <h5>Your query returned <b>{{ "over " if g.total_hits > g.num_results else "" }}{{ g.formatted_results }}</b> match{{ "es" if g.num_results > 1 else "" }}
             in <b><i>{{ g.elapsed }} seconds</i></b></h5>
         </div>
       </div>
-      {% if g.limit_msg %}
+      {% if g.limit_msg  %}
         <div class="row">
           <div class="col s9 offset-s1">
             <i class="red-text">{{ g.limit_msg }}</i>

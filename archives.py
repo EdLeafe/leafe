@@ -19,7 +19,7 @@ PLACEHOLDER_TEXT = "ABCDEF%sZYXWVU"
 # using offsets. There are ways around it, but really, a search that pulls more
 # than 10K is not a very good search.
 MAX_RECORDS = 10000
-LIMIT_MSG = "Note: Result sets are limited to %s records" % MAX_RECORDS
+LIMIT_MSG = f"Note: Result sets are limited to {MAX_RECORDS:,} records"
 
 es_client = elasticsearch.Elasticsearch(host="dodata")
 # My original names in the DB suck, so...
@@ -307,6 +307,8 @@ def archives_results_GET():
     g.total_pages = session["total_pages"]
     g.limit_msg = session["limit_msg"]
     g.num_results = session["num_results"]
+    g.formatted_results = session["formatted_results"]
+    g.total_hits = session["total_hits"]
     g.full_results = session["full_results"]
     g.batch_size = session["batch_size"]
     g.page = int(request.args["page"])
@@ -336,6 +338,8 @@ def archives_results_POST():
         "total_pages",
         "limit_msg",
         "num_results",
+        "formatted_results",
+        "total_hits",
         "full_results",
         "batch_size",
         "kwargs",
@@ -394,8 +398,16 @@ def archives_results_POST():
     session["elapsed"] = g.elapsed = "%.4f" % (time.time() - startTime)
     g.full_results = [r["_source"]["msg_num"] for r in resp["hits"]["hits"]]
     session["full_results"] = g.full_results
-    session["num_results"] = g.num_results = resp["hits"]["total"]["value"]
-    g.limit_msg = "" if g.num_results <= MAX_RECORDS else LIMIT_MSG
+    session["num_results"] = session["total_hits"] = g.num_results = g.total_hits = resp["hits"][
+        "total"
+    ]["value"]
+    if g.num_results == MAX_RECORDS:
+        kwargs["size"] = 0
+        tot = es_client.search(index="email", track_total_hits=True, **kwargs)
+        session["total_hits"] = g.total_hits = tot["hits"]["total"]["value"]
+    session["formatted_results"] = g.formatted_results = f"{g.num_results:,}"
+    #    g.limit_msg = "" if g.num_results <= g.total_hits else LIMIT_MSG
+    g.limit_msg = "" if g.total_hits <= MAX_RECORDS else LIMIT_MSG
     session["limit_msg"] = g.limit_msg
 
     # Now run the query for real

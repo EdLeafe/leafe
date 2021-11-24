@@ -34,7 +34,7 @@ def logit(*msgs):
     msg_str = " ".join(["%s" % m for m in msgs])
     msg = tmstr + " " + msg_str
     with open(LOGIT_FILE, "a") as ff:
-        ff.write("{}\n".format(msg))
+        ff.write(f"{msg}\n")
 
 
 class DotDict(dict):
@@ -220,7 +220,7 @@ def get_gallery_names():
 
 def get_photos_in_gallery(gallery_name):
     clt = get_client()
-    prefix = "galleries/{}/".format(gallery_name)
+    prefix = f"galleries/{gallery_name}/"
     all_photos = clt.list(prefix=prefix)
     photos_with_meta = {
         itm.name.split("galleries/")[-1]: clt.get_key(itm).metadata for itm in all_photos

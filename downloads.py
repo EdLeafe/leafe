@@ -124,17 +124,21 @@ def upload():
 def upload_test(app):
     import flask
 
-    #    app.logger.warning("upload_test() called")
+    request = flask.request
+    app.logger.warning("upload_test() called")
+    app.logger.warning(f"opname: {request.headers.get('operation_name')}")
+    app.logger.warning(f"Op-Name: {request.headers.get('Operation-Name')}")
+    app.logger.warning(f"Headers: {request.headers}")
     chunk_size = 8192
     total_size = 0
     while True:
-        chunk = flask.request.stream.read(chunk_size)
+        chunk = request.stream.read(chunk_size)
         chunk_len = len(chunk)
-        #        app.logger.warning(f"CHUNK: {chunk_len}")
+        app.logger.warning(f"CHUNK: {chunk_len}")
         total_size += chunk_len
         if not chunk_len:
             break
-    #    app.logger.warning(f"Returning {total_size}")
+    app.logger.warning(f"Returning {total_size}")
     time.sleep(1)
     return str(total_size)
 

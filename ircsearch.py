@@ -152,6 +152,7 @@ def POST_search_results():
     g.hilite = hilite
     g.results = [hit["_source"] for hit in hits]
     g.num_results = hit_count
+    g.formatted_results = f"{hit_count:,}"
     g.kwargs = kwargs
     return render_template("irc_search_results.html", make_clickable=make_clickable)
 

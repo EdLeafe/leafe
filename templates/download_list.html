@@ -45,7 +45,7 @@
                <table class="striped">
                {% for rec in g.vfp %}
                  <tr>
-                   <td class="title_cell"><a href="{{ update_link(rec['cfile'][16:]) }}">{{ hilite(rec["ctitle"]) | safe }}</a></td>
+                   <td class="title_cell"><a href="{{ update_link(rec['cfile']) }}">{{ hilite(rec["ctitle"]) | safe }}</a></td>
                    <td>{{ hilite(rec["mdesc"]) | safe }}&nbsp;&nbsp;<b>Author: {{ hilite(rec["cauthor"]) | safe }}</b>&nbsp;
                      <span class="fileinfo">{{ cost_calc(rec["ccosttype"], rec["ncost"]) }}</span>
                      &nbsp;<span class="filesize">{{ rec["csize"].upper() }}</span>&nbsp; Last updated: <b>{{ rec["dlastupd"] }}</b>

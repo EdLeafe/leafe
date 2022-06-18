@@ -42,9 +42,6 @@ def make_folder_public(folder):
 
 
 def main():
-    import pudb
-
-    pudb.set_trace()
     clt = create_client()
     for root, dirs, files in os.walk(PHOTO_DIR, topdown=True):
         container_name = os.path.basename(root)

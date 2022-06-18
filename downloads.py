@@ -78,12 +78,14 @@ def all_dls():
 
 def _update_link(link):
     """The database contains links in the format
-    'http://leafe.com/download/<fname>'. I want this to be more explicit by
+    'http[s]://leafe.com/download/<fname>'. I want this to be more explicit by
     specifying the link as '/download_file/<fname>', so this function does
     that. When I convert the site to use exclusively this newer code, I can
     update the database, making this function moot.
     """
-    return link.replace("/download/", "/download_file/")
+    link = link.replace("http:", "https:")
+    parts = link.split("/download/")
+    return "/download_file/".join(parts)
 
 
 def _run_query(term=None):

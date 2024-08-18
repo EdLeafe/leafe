@@ -2,7 +2,7 @@ import copy
 import datetime as dt
 import hashlib
 
-from elasticsearch import Elasticsearch
+from elasticsearch7 import Elasticsearch
 from flask import Flask, abort, g, redirect, render_template, request, session
 from flask import url_for, make_response, render_template
 

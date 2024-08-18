@@ -6,7 +6,7 @@ import random
 import re
 import time
 
-from elasticsearch import Elasticsearch
+from elasticsearch7 import Elasticsearch
 from flask import abort, g, render_template, request, session
 
 import utils

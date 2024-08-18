@@ -44,6 +44,25 @@
     .btn, .btn:hover {
         background-color: #1E90FF;
     }
+	/*  fontSize: */
+	.xs   {font-size: 0.75rem}
+	.sm   {font-size: 0.875rem}
+	.base {font-size: 1rem}
+	.lg   {font-size: 1.125rem}
+	.xl   {font-size: 1.25rem}
+	.2xl  {font-size: 1.5rem}
+	.3xl  {font-size: 1.875rem}
+	.4xl  {font-size: 2.25rem}
+	.5xl  {font-size: 3rem}
+	.6xl  {font-size: 4rem}
+	.fs1  {font-size: 1vw}
+	.fs2  {font-size: 1.4vw}
+	.fs3  {font-size: 1.6vw}
+	.fs4  {font-size: 1.8vw}
+	.fs5  {font-size: 2vw}
+	.fs6  {font-size: 2.2vw}
+	.fs7  {font-size: 2.4vw}
+	.fs8  {font-size: 2.6vw}
   </style>
 
   {% block extra_CSS %}
@@ -102,6 +121,16 @@
         <li><a href="https://github.com/EdLeafe?tab=repositories">My GitHub</a>
         </li>
       </ul>
+      <ul id="ref_dropdown" class="dropdown-content">
+        <li><a href="/referee">Referee</a>
+        </li>
+        <li>
+            <a href="/referee/2023_gil_weber_pregame_discussions.pdf"> Gil Weber's Pregame Discussion Points</a>
+        </li>
+        <li>
+            <a href="/referee/2023_gil_weber_pregame_discussions_youth.pdf"> Gil Weber's Pregame Discussion Points - rec and youth</a>
+        </li>
+      </ul>
       <ul id="art_dropdown_side" class="dropdown-content">
         <li><a href="/art">About My Work</a>
         </li>
@@ -130,6 +159,16 @@
         <li><a href="https://github.com/EdLeafe?tab=repositories">My GitHub</a>
         </li>
       </ul>
+      <ul id="ref_dropdown_side" class="dropdown-content">
+        <li><a href="/referee">Referee</a>
+        </li>
+        <li>
+            <a href="/referee/2023_gil_weber_pregame_discussion_points.pdf"> Gil Weber's Pregame Discussion Points</a>
+        </li>
+        <li>
+            <a href="/referee/2023_gil_weber_pregame_discussion_points_for_referees_working_rec_games_and_comp_U-14_and_below.pdf"> Gil Weber's Pregame Discussion Points - rec and youth</a>
+        </li>
+      </ul>
       <nav class="light-blue">
         <div class="nav-wrapper">
           <a href="#!" class="brand-logo">
@@ -147,6 +186,8 @@
             </li>
             <li><a class="dropdown-trigger" href="#!" data-target="tech_dropdown">Technology<i class="material-icons right">arrow_drop_down</i></a>
             </li>
+            <li><a class="dropdown-trigger" href="#!" data-target="ref_dropdown">Referee<i class="material-icons right">arrow_drop_down</i></a>
+            </li>
             <li><a href="https://blog.leafe.com">Blog</a>
             </li>
           </ul>
@@ -159,6 +200,8 @@
         <li><a class="dropdown-trigger" href="#!" data-target="art_dropdown_side">Art<i class="material-icons right">arrow_drop_down</i></a>
         </li>
         <li><a class="dropdown-trigger" href="#!" data-target="tech_dropdown_side">Technology<i class="material-icons right">arrow_drop_down</i></a>
+        </li>
+        <li><a class="dropdown-trigger" href="#!" data-target="ref_dropdown_side">Referee<i class="material-icons right">arrow_drop_down</i></a>
         </li>
         <li><a href="https://blog.leafe.com">Blog</a>
         </li>

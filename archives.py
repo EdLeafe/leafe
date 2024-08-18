@@ -6,7 +6,7 @@ import string
 from textwrap import TextWrapper
 import time
 
-import elasticsearch
+import elasticsearch7 as elasticsearch
 from flask import abort, Flask, g, render_template, request, session, url_for
 
 import utils

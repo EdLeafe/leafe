@@ -1,5 +1,5 @@
 import datetime
-from functools import wraps, update_wrapper
+from functools import lru_cache, update_wrapper, wraps
 import logging
 import math
 import os
@@ -9,7 +9,7 @@ from subprocess import Popen, PIPE
 import time
 import uuid
 
-import boto
+import boto3
 from flask import make_response
 import pymysql
 from pymysql.err import InternalError as PymysqlInternalError
@@ -24,6 +24,8 @@ LOG = logging.getLogger(__name__)
 BASE_DIR = "/home/ed/projects/leafe"
 LOGIT_FILE = os.path.join(BASE_DIR, "LOGOUT")
 PHRASE_PAT = re.compile('"([^"]*)"*')
+GALLERY_BUCKET = "com-leafe-images"
+GALLERY_PREFIX = "galleries/"
 
 IntegrityError = pymysql.err.IntegrityError
 
@@ -147,7 +149,7 @@ def human_fmt(num):
     units = list(zip(["bytes", "K", "MB", "GB", "TB", "PB"], [0, 0, 1, 2, 2, 2]))
     if num > 1:
         exponent = min(int(math.log(num, 1024)), len(units) - 1)
-        quotient = float(num) / 1024 ** exponent
+        quotient = float(num) / 1024**exponent
         unit, num_decimals = units[exponent]
         format_string = "{:.%sf} {}" % (num_decimals)
         return format_string.format(quotient, unit)
@@ -173,13 +175,23 @@ def _user_creds():
 
 def get_client():
     user_creds = _user_creds()
-    conn = boto.connect_s3(
+    res = boto3.resource(
+        "s3",
+        region_name="nyc3",
+        endpoint_url="https://nyc3.digitaloceanspaces.com",
         aws_access_key_id=user_creds["spacekey"],
         aws_secret_access_key=user_creds["secret"],
-        host="nyc3.digitaloceanspaces.com",
     )
-    bucket = conn.get_bucket(user_creds["bucket"])
-    return bucket
+    clt = res.meta.client
+    return clt
+
+
+#     user_creds = _user_creds()
+#     conn = boto.connect_s3(
+#         host="nyc3.digitaloceanspaces.com",
+#     )
+#     bucket = conn.get_bucket(user_creds["bucket"])
+#     return bucket
 
 
 def upload_to_DO(fpath, folder=None, public=False):
@@ -210,25 +222,25 @@ def upload_to_DO(fpath, folder=None, public=False):
 
 def get_gallery_names():
     clt = get_client()
-    prefix = "galleries/"
-    all_names = clt.list(prefix=prefix, delimiter="/")
-    full_names = (itm.name for itm in all_names)
-    names = (itm.split(prefix)[-1] for itm in full_names)
-    cleaned = [itm.rstrip("/") for itm in names if itm]
-    return cleaned
+    all_names = clt.list_objects_v2(Bucket=GALLERY_BUCKET, Prefix=GALLERY_PREFIX, Delimiter="/")
+    return [
+        itm["Prefix"].split(GALLERY_PREFIX)[-1].strip("/") for itm in all_names["CommonPrefixes"]
+    ]
 
 
+@lru_cache
 def get_photos_in_gallery(gallery_name):
     clt = get_client()
-    prefix = f"galleries/{gallery_name}/"
-    all_photos = clt.list(prefix=prefix)
-    photos_with_meta = {
-        itm.name.split("galleries/")[-1]: clt.get_key(itm).metadata for itm in all_photos
+    prefix = f"{GALLERY_PREFIX}{gallery_name}/"
+    all_photos = clt.list_objects_v2(Bucket=GALLERY_BUCKET, Prefix=prefix, Delimiter="/").get(
+        "Contents", []
+    )
+    photos = {
+        itm["Key"].split(GALLERY_PREFIX)[-1]: clt.get_object(Bucket=GALLERY_BUCKET, Key=itm["Key"])
+        for itm in all_photos
+        if not itm["Key"].endswith("/")
     }
-    photo_keys = list(photos_with_meta.keys())
-    random.shuffle(photo_keys)
-    shuffled_photos = {pk: photos_with_meta.get(pk) for pk in photo_keys if not pk.endswith("/")}
-    return shuffled_photos
+    return photos
 
 
 def download(remote_url, folder, fname):

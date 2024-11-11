@@ -30,6 +30,9 @@ h3.heading {
 body {
   background-color: black;
 }
+.thumb {
+  object-fit: contain;
+}
 </style>
 {% endblock %}
 
@@ -76,8 +79,8 @@ body {
   <div style="margin: auto; width: 95%;">
   {% set ns = namespace(row_count=0) %}
   {% for photo in g.photos %}
-      <img src="{{ photo }}" height=150 width=150 onclick="loadpswp({{ ns.row_count }})" />
-  {% set ns.row_count = ns.row_count + 1 %}
+    <img class="thumb" src="{{ url_for('static', filename=get_thumb(photo)) }}" height=150 width=150 onclick="loadpswp({{ ns.row_count }})" />
+    {% set ns.row_count = ns.row_count + 1 %}
   {% endfor %}
   </div>
   <div style="margin: 50px 0px 20px 25px;">
